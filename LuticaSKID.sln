@@ -5,8 +5,6 @@ VisualStudioVersion = 17.12.35527.113 d17.12
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "LuticaSKID", "LuticaSKID\LuticaSKID.fsproj", "{BF5009D8-A628-4DE0-B89B-84D24731CCEA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LuticaSKIDBinder", "SKID Binder\LuticaSKIDBinder.csproj", "{2A13B8EA-0E7E-4FAC-8C1C-995705E3E34C}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -17,10 +15,6 @@ Global
 		{BF5009D8-A628-4DE0-B89B-84D24731CCEA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BF5009D8-A628-4DE0-B89B-84D24731CCEA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BF5009D8-A628-4DE0-B89B-84D24731CCEA}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2A13B8EA-0E7E-4FAC-8C1C-995705E3E34C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2A13B8EA-0E7E-4FAC-8C1C-995705E3E34C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2A13B8EA-0E7E-4FAC-8C1C-995705E3E34C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2A13B8EA-0E7E-4FAC-8C1C-995705E3E34C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
