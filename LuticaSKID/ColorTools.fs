@@ -6,4 +6,5 @@ type ColorTools() =
     static member MapColors (src: StructTypes.SKIDColor[], dst: StructTypes.SKIDColor[]) : StructTypes.SKIDColor[] =
         ColorMath.applyMapping src dst
     static member TakeMoodColorAndMap (src: StructTypes.SKIDColor[], dst: StructTypes.SKIDColor[]) : StructTypes.SKIDColor[] =
-        ColorMath.applyMapping src dst
+        let moodColor = ColorMath.GetMoodColorDefault src 
+        ColorMath.applyMapping moodColor dst

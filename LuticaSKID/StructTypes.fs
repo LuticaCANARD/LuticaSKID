@@ -3,10 +3,11 @@ open System.Runtime.InteropServices;
 module public StructTypes =
     [<StructLayout(LayoutKind.Sequential)>]
     [<Struct>]
-    type public SKIDColor(_r: float32, _g: float32, _b: float32, _a: float32) =
-        member _.r = _r
-        member _.g = _g
-        member _.b = _b
-        member _.a = _a
+    type SKIDColor =
+        val r: float32
+        val g: float32
+        val b: float32
+        val a: float32
+        new (r, g, b, a) = { r = r; g = g; b = b; a = a }
 
    

@@ -1,18 +1,21 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.12.35527.113 d17.12
+VisualStudioVersion = 17.12.35527.113
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "LuticaSKID", "LuticaSKID\LuticaSKID.fsproj", "{BF5009D8-A628-4DE0-B89B-84D24731CCEA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
+		LuticaL|Any CPU = LuticaL|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{BF5009D8-A628-4DE0-B89B-84D24731CCEA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{BF5009D8-A628-4DE0-B89B-84D24731CCEA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BF5009D8-A628-4DE0-B89B-84D24731CCEA}.LuticaL|Any CPU.ActiveCfg = Release|Any CPU
+		{BF5009D8-A628-4DE0-B89B-84D24731CCEA}.LuticaL|Any CPU.Build.0 = Release|Any CPU
 		{BF5009D8-A628-4DE0-B89B-84D24731CCEA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BF5009D8-A628-4DE0-B89B-84D24731CCEA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection

@@ -1,17 +1,34 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework> <!-- Unity 호환 -->
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <RootNamespace>LuticaSKID</RootNamespace>
-
+    <Configurations>Debug;Release;LuticaL</Configurations>
   </PropertyGroup>
 
   <ItemGroup>
+    <None Include="Directory.Build.props.sample" />
+    <None Include="Directory.Build.props" />
     <Compile Include="SKIDConstants.fs" />
     <Compile Include="StructTypes.fs" />
+    <Compile Include="ColorClustring.fs" />
     <Compile Include="ColorMath.fs" />
     <Compile Include="ColorTools.fs" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Setting\" />
+  </ItemGroup>
+  <Target Name="LutiacaL" AfterTargets="Build">
+    <PropertyGroup>
+      <UnityPluginDir>$(UnityPluginPath)</UnityPluginDir>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <BuiltFiles Include="$(OutputPath)\$(TargetFileName)" />
+    </ItemGroup>
+
+    <Copy SourceFiles="@(BuiltFiles)" DestinationFolder="$(UnityPluginDir)" SkipUnchangedFiles="true" />
+  </Target>
 </Project>
