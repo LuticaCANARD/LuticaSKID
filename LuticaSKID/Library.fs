@@ -1,11 +1,11 @@
 ﻿namespace LuticaSKID
 
 [<Struct>]
-type Color =
+type SKIDColor =
     { r: float32; g: float32; b: float32; a: float32 }
 
 module ColorMath =
-    let averageColor (pixels: Color[]) =
+    let averageColor (pixels: SKIDColor []) =
         let r, g, b, a = 
             pixels |> Array.fold (fun (r, g, b, a) c -> 
                 r + c.r, g + c.g, b + c.b, a + c.a
@@ -13,7 +13,7 @@ module ColorMath =
         let n = float32 pixels.Length
         { r = r / n; g = g / n; b = b / n; a = a / n }
 
-    let shiftColor (color: Color) (diff: Color) =
+    let shiftColor (color: SKIDColor ) (diff: SKIDColor ) =
         let clamp (v: float32) = min 1.0f (max 0.0f v)
         { 
             r = clamp (color.r + diff.r)
@@ -22,7 +22,7 @@ module ColorMath =
             a = clamp (color.a + diff.a)
         }
 
-    let applyMapping (source: Color[]) (target: Color[]) =
+    let applyMapping (source: SKIDColor []) (target: SKIDColor []) =
         let avgS = averageColor source
         let avgT = averageColor target
         let diff = 
@@ -34,5 +34,5 @@ module ColorMath =
 
 [<System.Runtime.InteropServices.ComVisible(true)>]
 type ColorTools() =
-    static member MapColors (src: Color[], dst: Color[]) : Color[] =
+    static member MapColors (src: SKIDColor[], dst: SKIDColor[]) : SKIDColor[] =
         ColorMath.applyMapping src dst
