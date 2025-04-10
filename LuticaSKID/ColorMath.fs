@@ -1,8 +1,5 @@
 ﻿namespace LuticaSKID
-
-[<Struct>]
-type SKIDColor =
-    { r: float32; g: float32; b: float32; a: float32 }
+open StructTypes;
 
 module ColorMath =
     let averageColor (pixels: SKIDColor []) =
@@ -31,8 +28,3 @@ module ColorMath =
               b = avgT.b - avgS.b
               a = avgT.a - avgS.a }
         source |> Array.map (fun c -> shiftColor c diff)
-
-[<System.Runtime.InteropServices.ComVisible(true)>]
-type ColorTools() =
-    static member MapColors (src: SKIDColor[], dst: SKIDColor[]) : SKIDColor[] =
-        ColorMath.applyMapping src dst

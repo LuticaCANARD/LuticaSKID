@@ -8,7 +8,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="Library.fs" />
+    <Compile Include="StructTypes.fs" />
+    <Compile Include="ColorMath.fs" />
+    <Compile Include="ColorTools.fs" />
   </ItemGroup>
 
 </Project>
