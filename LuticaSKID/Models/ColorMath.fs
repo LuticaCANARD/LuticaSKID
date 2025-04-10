@@ -43,16 +43,7 @@ module ColorMath =
                 avgT.a - avgS.a
             )
         source |> Array.map (fun c -> shiftColor c diff)
-    let GetMoodColorDefault (source: SKIDColor[]) =
-        let domColor = ColorClustering.getDominantColorDefault source
-        let diff = SKIDColor(
-            domColor.r - 0.5f,
-            domColor.g - 0.5f,
-            domColor.b - 0.5f,
-            0.0f // 알파는 그대로
-        )
-        source |> Array.map (fun c -> shiftColor c diff)
-    let GetMoodColor (source: SKIDColor[],k:int) =
+    let GetMoodColor (source: SKIDColor[]) (k:int) =
         let domColor = ColorClustering.getDominantColor source k
         let diff = SKIDColor(
             domColor.r - 0.5f,
@@ -61,4 +52,7 @@ module ColorMath =
             0.0f // 알파는 그대로
         )
         source |> Array.map (fun c -> shiftColor c diff)
+    let GetMoodColorDefault (source: SKIDColor[]) =
+        GetMoodColor source 5
+    
 
