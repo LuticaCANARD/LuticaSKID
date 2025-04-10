@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="SKIDConstants.fs" />
     <Compile Include="StructTypes.fs" />
     <Compile Include="ColorMath.fs" />
     <Compile Include="ColorTools.fs" />

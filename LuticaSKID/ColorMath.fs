@@ -2,29 +2,45 @@
 open StructTypes;
 
 module ColorMath =
-    let averageColor (pixels: SKIDColor []) =
-        let r, g, b, a = 
-            pixels |> Array.fold (fun (r, g, b, a) c -> 
-                r + c.r, g + c.g, b + c.b, a + c.a
-            ) (0.0f, 0.0f, 0.0f, 0.0f)
-        let n = float32 pixels.Length
-        { r = r / n; g = g / n; b = b / n; a = a / n }
+    let averageColor (pixels: SKIDColor[]) =
+        let mutable r, g, b, a, n = 0.0f, 0.0f, 0.0f, 0.0f, 0
+        for c in pixels do
+            let isTooWhite = c.r >= SKIDConstants.WhiteMax &&
+                             c.g >= SKIDConstants.WhiteMax &&
+                             c.b >= SKIDConstants.WhiteMax
+            let isTooTransparent = c.a <= SKIDConstants.MinAlpha
 
-    let shiftColor (color: SKIDColor ) (diff: SKIDColor ) =
+            if not isTooWhite && not isTooTransparent then
+                n <- n + 1
+                r <- r + c.r
+                g <- g + c.g
+                b <- b + c.b
+                a <- a + c.a
+
+        if n = 0 then
+            SKIDColor(1.0f, 1.0f, 1.0f, 1.0f)
+        else
+            let n = float32 n
+            SKIDColor(r / n, g / n, b / n, a / n)
+
+    let shiftColor (color: SKIDColor) (diff: SKIDColor) =
         let clamp (v: float32) = min 1.0f (max 0.0f v)
-        { 
-            r = clamp (color.r + diff.r)
-            g = clamp (color.g + diff.g)
-            b = clamp (color.b + diff.b)
-            a = clamp (color.a + diff.a)
-        }
+        SKIDColor(
+            clamp (color.r + diff.r),
+            clamp (color.g + diff.g),
+            clamp (color.b + diff.b),
+            clamp (color.a + diff.a)
+        )
 
-    let applyMapping (source: SKIDColor []) (target: SKIDColor []) =
+    let applyMapping (source: SKIDColor[]) (target: SKIDColor[]) =
         let avgS = averageColor source
         let avgT = averageColor target
-        let diff = 
-            { r = avgT.r - avgS.r
-              g = avgT.g - avgS.g
-              b = avgT.b - avgS.b
-              a = avgT.a - avgS.a }
+        let diff =
+            SKIDColor(
+                avgT.r - avgS.r,
+                avgT.g - avgS.g,
+                avgT.b - avgS.b,
+                avgT.a - avgS.a
+            )
         source |> Array.map (fun c -> shiftColor c diff)
+
