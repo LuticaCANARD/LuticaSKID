@@ -8,17 +8,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+
+
+    <Compile Include="Schema\SKIDConstants.fs" />
+    <Compile Include="Schema\StructTypes.fs" />
     <None Include="Directory.Build.props.sample" />
     <None Include="Directory.Build.props" />
-    <Compile Include="SKIDConstants.fs" />
-    <Compile Include="StructTypes.fs" />
-    <Compile Include="ColorClustring.fs" />
-    <Compile Include="ColorMath.fs" />
+    <Compile Include="Models\ColorClustring.fs" />
+    <Compile Include="Models\ColorMath.fs" />
     <Compile Include="ColorTools.fs" />
-  </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Setting\" />
   </ItemGroup>
   <Target Name="LutiacaL" AfterTargets="Build">
     <PropertyGroup>
