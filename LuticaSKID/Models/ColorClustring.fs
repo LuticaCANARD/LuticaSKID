@@ -1,12 +1,9 @@
 ﻿namespace LuticaSKID
 open System
 open LuticaSKID.StructTypes
+open LuticaSKID.SKIDToolFunction
 
 module ColorClustering =
-
-    let inline distance (a: SKIDColor) (b: SKIDColor) =
-        let dr, dg, db = a.r - b.r, a.g - b.g, a.b - b.b
-        dr * dr + dg * dg + db * db // 유클리드 거리 (alpha 제외)
 
     let average (colors: SKIDColor list) =
         let mutable r, g, b, a = 0.0f, 0.0f, 0.0f, 0.0f

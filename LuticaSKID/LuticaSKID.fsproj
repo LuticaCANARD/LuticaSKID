@@ -10,10 +10,15 @@
   <ItemGroup>
 
 
+
+
+
     <Compile Include="Schema\SKIDConstants.fs" />
     <Compile Include="Schema\StructTypes.fs" />
+    <Compile Include="Schema\SKIDToolFunction.fs" />
     <None Include="Directory.Build.props.sample" />
     <None Include="Directory.Build.props" />
+    <Compile Include="Models\ColorGrammer.fs" />
     <Compile Include="Models\ColorClustring.fs" />
     <Compile Include="Models\ColorMath.fs" />
     <Compile Include="ColorTools.fs" />

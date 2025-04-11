@@ -5,10 +5,10 @@ module ColorMath =
     let averageColor (pixels: SKIDColor[]) =
         let mutable r, g, b, a, n = 0.0f, 0.0f, 0.0f, 0.0f, 0
         for c in pixels do
-            let isTooWhite = c.r >= SKIDConstants.WhiteMax &&
-                             c.g >= SKIDConstants.WhiteMax &&
-                             c.b >= SKIDConstants.WhiteMax
-            let isTooTransparent = c.a <= SKIDConstants.MinAlpha
+            let isTooWhite = c.r >= SKIDConstants.MaxValue &&
+                             c.g >= SKIDConstants.MaxValue &&
+                             c.b >= SKIDConstants.MaxValue
+            let isTooTransparent = c.a <= SKIDConstants.MinValue
 
             if not isTooWhite && not isTooTransparent then
                 n <- n + 1

@@ -6,11 +6,11 @@ open System.Runtime.CompilerServices
 [<AbstractClass>]
 type SKIDConstants() =
     
-    static member WhiteMax
-        with get() = 0.95f
+    static member MaxValue
+        with get() = 1.f
 
-    static member MinAlpha
-        with get() = 0.01f
+    static member MinValue
+        with get() = 0.0f
 
     static member ModelExtension
         with get() = ".skidmodel"
