@@ -1,9 +1,15 @@
 ﻿namespace LuticaSKID
+
 open System
 open LuticaSKID.StructTypes
 open LuticaSKID.SKIDToolFunction
 
 module ColorClustering =
+
+    type InitType = {
+        ClusterCount: int
+        Iterations: int
+    }
 
     let average (colors: SKIDColor list) =
         let mutable r, g, b, a = 0.0f, 0.0f, 0.0f, 0.0f
@@ -15,18 +21,18 @@ module ColorClustering =
             a <- a + c.a
         SKIDColor(r / n, g / n, b / n, a / n)
 
-    let kMeans (pixels: SKIDColor[]) (k: int) (iterations: int) =
+    let kMeans (pixels: SKIDColor[]) (init: InitType) =
         let rand = Random()
         let initialCentroids = [|
-            for _ in 1 .. k ->
+            for _ in 1 .. init.ClusterCount ->
                 let idx = rand.Next(pixels.Length)
                 pixels.[idx]
         |]
 
         let mutable centroids = initialCentroids
 
-        for _ in 1 .. iterations do
-            let clusters = Array.init k (fun _ -> ResizeArray<SKIDColor>())
+        for _ in 1 .. init.Iterations do
+            let clusters = Array.init init.ClusterCount (fun _ -> ResizeArray<SKIDColor>())
             for p in pixels do
                 let idx =
                     centroids
@@ -44,13 +50,11 @@ module ColorClustering =
 
         centroids
 
-    
-    let getDominantColor (pixels: SKIDColor[]) (k:int) =
-        let iterations = 6
-        let centroids = kMeans pixels k iterations
+    let getDominantColor (pixels: SKIDColor[]) (init: InitType) =
+        let centroids = kMeans pixels init
 
         let counts =
-            Array.init k (fun i -> i, 0)
+            Array.init init.ClusterCount (fun i -> i, 0)
             |> Array.map (fun (i, _) ->
                 let count = pixels |> Array.filter (fun p ->
                     let nearest = centroids |> Array.minBy (fun c -> distance p c)
@@ -60,5 +64,6 @@ module ColorClustering =
 
         let dominantIdx = counts |> Array.maxBy snd |> fst
         centroids.[dominantIdx]
+
     let getDominantColorDefault pixels =
-        getDominantColor pixels 4
+        getDominantColor pixels { ClusterCount = 4; Iterations = 6 }

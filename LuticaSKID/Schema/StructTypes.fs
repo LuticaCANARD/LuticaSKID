@@ -71,6 +71,35 @@ module public StructTypes =
             let a = this.MaxColor.a + this.MinColor.a / 2.0f
             SKIDColor(r, g, b, a)
 
+    
+    [<Class>]
+    type SKIDImage =
+        val pixels: SKIDColor[]
+        val width: int
+        val height: int
+        new(pixels: SKIDColor[], width: int, height: int) =
+            { pixels = pixels; width = width; height = height }
+
+    [<Class>]
+    type ImageProcessInput = 
+        val image: SKIDImage
+        val config: Map<string, obj> // 혹은 명확한 설정 타입
+        new( image:SKIDImage, config: Map<string, obj>) =
+            { image = image; config = config }
+
+
+    type ImageProcessWorkflow = ImageProcessInput -> SKIDColor[]
+    type ImageProcessingOrder = 
+    | NormalMap = 0
+    | MatcapMap = 1
+    | ColorMap = 2
+    | MoodColorMap = 3
+    | ColorMapping = 4
+    | None = -1
+
+
+
+
 
 
 
