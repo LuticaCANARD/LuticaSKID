@@ -5,9 +5,6 @@ open LuticaSKID.SKIDToolFunction
 
 module NormalModule =
 
-
-    let private clampColorComponent (v: float32) = SKIDColor.FilteringNotVaildColorNumber v
-
     /// Normal map 생성: 입력은 ImageProcessInput, 출력은 SKIDImage
     let generateNormalMap (input: ImageProcessInput) : SKIDImage =
         let xFactor =
