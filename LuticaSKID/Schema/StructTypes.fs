@@ -12,6 +12,10 @@ module public StructTypes =
         static member Transpaint = SKIDColor(SKIDConstants.MinValue, SKIDConstants.MinValue, SKIDConstants.MinValue, SKIDConstants.MinValue)
         static member FilteringNotVaildColorNumber(f:float32) =
             if f <= SKIDConstants.MinValue then SKIDConstants.MinValue elif f >= SKIDConstants.MaxValue then SKIDConstants.MaxValue else f
+
+        /// <summary>
+        /// SKIDColor의 생성자입니다. 색상 값은 0.0f ~ 1.0f 사이의 값이어야 합니다.
+        /// </summary>
         new (_r, _g, _b, _a) = { 
             r = SKIDColor.FilteringNotVaildColorNumber _r; 
             g = SKIDColor.FilteringNotVaildColorNumber _g; 
@@ -19,23 +23,24 @@ module public StructTypes =
             a = SKIDColor.FilteringNotVaildColorNumber _a;
         }
         static member (+) (a: SKIDColor, b: SKIDColor) =
-            SKIDColor(
-                a.r + b.r, a.g + b.g, a.b + b.b,a.a + b.a
-            )
+            SKIDColor( a.r + b.r, a.g + b.g, a.b + b.b, a.a + b.a )
         static member (-) (a: SKIDColor, b: SKIDColor) =
-            SKIDColor(
-                a.r - b.r, a.g - b.g, a.b - b.b,a.a - b.a
-            )
+            SKIDColor(a.r - b.r, a.g - b.g, a.b - b.b, a.a - b.a )
         static member (*) (a: SKIDColor, b: SKIDColor) =
-            SKIDColor(
-                a.r * b.r, a.g * b.g, a.b * b.b,a.a * b.a
-            )
+            SKIDColor(a.r * b.r, a.g * b.g, a.b * b.b, a.a * b.a)
+        static member (/) (a: SKIDColor, b: SKIDColor): Result<SKIDColor, DivideByZeroException> =
+            if b.r = 0.0f || b.g = 0.0f || b.b = 0.0f then Error (DivideByZeroException "Division by zero") else Ok (SKIDColor(a.r / b.r, a.g / b.g, a.b / b.b, a.a / b.a))
+
+        static member (*) (a: SKIDColor, b: float32) =
+            SKIDColor(a.r * b, a.g * b, a.b * b, a.a * b)
+        static member (+) (a: SKIDColor, b: float32) =
+            SKIDColor(a.r + b, a.g + b, a.b + b, a.a + b)
+        static member (-) (a: SKIDColor, b: float32) =
+            SKIDColor(a.r - b, a.g - b, a.b - b, a.a - b)
         static member (/) (a: SKIDColor, b: float32): Result<SKIDColor, DivideByZeroException> =
-            if b = 0.0f then
-                Error (DivideByZeroException "Division by zero")
-            else
-                Ok (SKIDColor(a.r / b, a.g / b, a.b / b, a.a / b))
-        
+            if b = 0.0f then Error (DivideByZeroException "Division by zero") else Ok (SKIDColor(a.r / b, a.g / b, a.b / b, a.a / b))
+
+
     [<Class>]
     type ColorSpaceBoundary =
         val mutable MinColor: SKIDColor
@@ -65,6 +70,11 @@ module public StructTypes =
             let b = this.MaxColor.b + this.MinColor.b / 2.0f
             let a = this.MaxColor.a + this.MinColor.a / 2.0f
             SKIDColor(r, g, b, a)
+
+
+
+
+
 
 
 

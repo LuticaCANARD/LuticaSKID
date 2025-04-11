@@ -18,6 +18,7 @@
     <Compile Include="Schema\SKIDToolFunction.fs" />
     <None Include="Directory.Build.props.sample" />
     <None Include="Directory.Build.props" />
+    <Compile Include="Models\NormalModule.fs" />
     <Compile Include="Models\ColorGrammer.fs" />
     <Compile Include="Models\ColorClustring.fs" />
     <Compile Include="Models\ColorMath.fs" />
