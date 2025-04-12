@@ -4,18 +4,12 @@ open LuticaSKID.StructTypes
 open LuticaSKID.SKIDToolFunction
 
 module NormalModule =
-
+    type NormalMapConfig = { xFactor:float32;yFactor:float32 }
+    
     /// Normal map 생성: 입력은 ImageProcessInput, 출력은 SKIDImage
-    let generateNormalMap (input: ImageProcessInput) : SKIDImage =
-        let xFactor =
-            match input.config.TryFind "xFactor" with
-            | Some(:? float32 as f) -> f
-            | _ -> 0.5f
-
-        let yFactor =
-            match input.config.TryFind "yFactor" with
-            | Some(:? float32 as f) -> f
-            | _ -> 0.5f
+    let generateNormalMap (input: ImageProcessInput<NormalMapConfig>) : SKIDImage =
+        let xFactor = input.config.Value.xFactor;
+        let yFactor = input.config.Value.yFactor;
 
         let width = input.image.width
         let height = input.image.height

@@ -81,14 +81,12 @@ module public StructTypes =
             { pixels = pixels; width = width; height = height }
 
     [<Class>]
-    type ImageProcessInput = 
+    type ImageProcessInput<'TSetting> = 
         val image: SKIDImage
-        val config: Map<string, obj> // 혹은 명확한 설정 타입
-        new( image:SKIDImage, config: Map<string, obj>) =
-            { image = image; config = config }
-
-
-    type ImageProcessWorkflow = ImageProcessInput -> SKIDColor[]
+        val config: 'TSetting option
+        new(image:SKIDImage, config: 'TSetting option) = { image = image; config = config}
+        new (image:SKIDImage) = { image = image; config = None}
+    
     type ImageProcessingOrder = 
     | NormalMap = 0
     | MatcapMap = 1

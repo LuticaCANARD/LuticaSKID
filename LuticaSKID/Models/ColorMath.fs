@@ -3,6 +3,7 @@
 open StructTypes
 open SKIDToolFunction
 module ColorMath =
+    type ColorMoodOption = {clusterCount : int}
     let clampColorComponent (v: float32) = SKIDColor.FilteringNotVaildColorNumber v
 
     let averageColor (pixels: SKIDColor[]) =
@@ -55,11 +56,8 @@ module ColorMath =
 
 
     // 워크플로우용 함수
-    let applyMoodColor (input: ImageProcessInput) : SKIDImage =
+    let applyMoodColor (input: ImageProcessInput<ColorMoodOption>) : SKIDImage =
         let pixels = input.image.pixels
-        let k =
-            match input.config.TryFind "clusterCount" with
-            | Some (:? int as v) -> v
-            | _ -> 5
+        let k = input.config.Value.clusterCount
         let shifted = getMoodColor pixels k
         SKIDImage(shifted, input.image.width, input.image.height)

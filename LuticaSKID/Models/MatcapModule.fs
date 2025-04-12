@@ -5,18 +5,14 @@ open LuticaSKID.SKIDToolFunction
 
 module MatcapModule =
 
+    type MatcapConfig = { DetailLevel: int; xFactor:float32;yFactor:float32 }
+    
+
     /// Matcap map 생성: 입력은 ImageProcessInput, 출력은 SKIDImage
-    let generateMatcapMap (input: ImageProcessInput) : SKIDImage =
-        let xFactor =
-            match input.config.TryFind "xFactor" with
-            | Some(:? float32 as f) -> f
-            | _ -> 1.0f
-
-        let yFactor =
-            match input.config.TryFind "yFactor" with
-            | Some(:? float32 as f) -> f
-            | _ -> 1.0f
-
+    let generateMatcapMap (input: ImageProcessInput<MatcapConfig>) : SKIDImage =
+        let xFactor = input.config.Value.xFactor
+        let yFactor = input.config.Value.yFactor
+            
         let width = input.image.width
         let height = input.image.height
         let pixels2D = Array2D.init width height (fun x y -> input.image.pixels.[x + y * width])

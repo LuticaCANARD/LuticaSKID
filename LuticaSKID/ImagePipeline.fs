@@ -6,7 +6,7 @@ open System.Runtime.InteropServices
 open System.Collections.Generic
 
 [<ComVisible(true)>]
-type ColorTools() =
+type ImagePipeline() =
 
     static member MapColors (src: SKIDColor[], dst: SKIDColor[]) : SKIDColor[] =
         ColorMath.applyMapping src dst
@@ -19,11 +19,9 @@ type ColorTools() =
         (src: SKIDColor[], width: int, height: int, xFactor: float32, yFactor: float32) : SKIDColor[] =
         
         let image = SKIDImage(src, width, height)
-        let config =
-            [ "xFactor", box xFactor
-              "yFactor", box yFactor ] |> Map.ofList
-
-        let input = ImageProcessInput(image, config)
+        let config: NormalModule.NormalMapConfig option = 
+            Some { xFactor = xFactor; yFactor = yFactor }
+        let input = ImageProcessInput<NormalModule.NormalMapConfig>(image,  config)
         let resultImage = NormalModule.generateNormalMap input
         resultImage.pixels
 
@@ -31,10 +29,8 @@ type ColorTools() =
         (src: SKIDColor[], width: int, height: int, xFactor: float32, yFactor: float32) : SKIDColor[] =
         
         let image = SKIDImage(src, width, height)
-        let config =
-            [ "xFactor", box xFactor
-              "yFactor", box yFactor ] |> Map.ofList
-
-        let input = ImageProcessInput(image, config)
-        let resultImage = NormalModule.generateNormalMap input
+        let config:MatcapModule.MatcapConfig option = 
+            Some { DetailLevel = 1; xFactor = xFactor; yFactor = yFactor }
+        let input = ImageProcessInput<MatcapModule.MatcapConfig>(image, config)
+        let resultImage = MatcapModule.generateMatcapMap input
         resultImage.pixels
