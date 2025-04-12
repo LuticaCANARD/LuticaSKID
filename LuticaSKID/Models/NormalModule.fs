@@ -43,3 +43,76 @@ module NormalModule =
                 setPixel x y (SKIDColor(r, g, b, 1.0f))
 
         SKIDImage(result, width, height)
+
+    let computeNormalFromUV
+        (uvs: SKIDVector2[])
+        (positions: SKIDVector3[])
+        (triangles: int[])
+        : SKIDVector3[] =
+
+        let normals = Array.create uvs.Length (SKIDVector3(0.0f, 0.0f, 0.0f))
+        let counts = Array.create uvs.Length 0
+
+        let cross (a: SKIDVector3) (b: SKIDVector3) =
+            SKIDVector3(
+                a.y * b.z - a.z * b.y,
+                a.z * b.x - a.x * b.z,
+                a.x * b.y - a.y * b.x
+            )
+
+        let normalizeVec3 (v: SKIDVector3) =
+            let len = sqrt (v.x * v.x + v.y * v.y + v.z * v.z)
+            if len = 0.0f then SKIDVector3(0.0f, 0.0f, 0.0f)
+            else SKIDVector3(v.x / len, v.y / len, v.z / len)
+
+        // 각 삼각형에 대해 normal 계산
+        for i in 0 .. 3 .. triangles.Length - 3 do
+            let i0 = triangles.[i]
+            let i1 = triangles.[i + 1]
+            let i2 = triangles.[i + 2]
+
+            let p0 = positions.[i0]
+            let p1 = positions.[i1]
+            let p2 = positions.[i2]
+
+            let uv0 = uvs.[i0]
+            let uv1 = uvs.[i1]
+            let uv2 = uvs.[i2]
+
+            let dp1 = SKIDVector3(p1.x - p0.x, p1.y - p0.y, p1.z - p0.z)
+            let dp2 = SKIDVector3(p2.x - p0.x, p2.y - p0.y, p2.z - p0.z)
+
+            let duv1 = SKIDVector2(uv1.x - uv0.x, uv1.y - uv0.y)
+            let duv2 = SKIDVector2(uv2.x - uv0.x, uv2.y - uv0.y)
+
+            let r = 1.0f / (duv1.x * duv2.y - duv1.y * duv2.x + 1e-8f) // 방지
+
+            let tangent = SKIDVector3(
+                (dp1.x * duv2.y - dp2.x * duv1.y) * r,
+                (dp1.y * duv2.y - dp2.y * duv1.y) * r,
+                (dp1.z * duv2.y - dp2.z * duv1.y) * r
+            )
+
+            let bitangent = SKIDVector3(
+                (dp2.x * duv1.x - dp1.x * duv2.x) * r,
+                (dp2.y * duv1.x - dp1.y * duv2.x) * r,
+                (dp2.z * duv1.x - dp1.z * duv2.x) * r
+            )
+
+            let n = normalizeVec3 (cross tangent bitangent)
+
+            for idx in [i0; i1; i2] do
+                normals.[idx] <- SKIDVector3(
+                    normals.[idx].x + n.x,
+                    normals.[idx].y + n.y,
+                    normals.[idx].z + n.z
+                )
+                counts.[idx] <- counts.[idx] + 1
+
+        // 평균화
+        Array.mapi (fun i (n: SKIDVector3) ->
+            if counts.[i] > 0 then
+                let scaled = SKIDVector3(n.x / float32 counts.[i], n.y / float32 counts.[i], n.z / float32 counts.[i])
+                normalizeVec3 scaled
+            else SKIDVector3(0.0f, 0.0f, 1.0f) // fallback
+        ) normals
