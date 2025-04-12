@@ -39,7 +39,41 @@ module public StructTypes =
             SKIDColor(a.r - b, a.g - b, a.b - b, a.a - b)
         static member (/) (a: SKIDColor, b: float32): Result<SKIDColor, DivideByZeroException> =
             if b = 0.0f then Error (DivideByZeroException "Division by zero") else Ok (SKIDColor(a.r / b, a.g / b, a.b / b, a.a / b))
-
+    [<StructLayout(LayoutKind.Sequential)>]
+    [<Struct>]
+    type SKIDVector3 =         
+        val x: float32
+        val y: float32
+        val z: float32
+        new (_x, _y, _z) = { x = _x; y = _y; z = _z }
+        static member (+) (a: SKIDVector3, b: SKIDVector3) =
+            SKIDVector3(a.x + b.x, a.y + b.y, a.z + b.z)
+        static member (-) (a: SKIDVector3, b: SKIDVector3) =
+            SKIDVector3(a.x - b.x, a.y - b.y, a.z - b.z)
+        static member (*) (a: SKIDVector3, b: float32) =
+            SKIDVector3(a.x * b, a.y * b, a.z * b)
+        static member (*) (a: SKIDVector3, b: SKIDVector3) =
+            SKIDVector3(a.x * b.x, a.y * b.y, a.z * b.z)
+        static member (/) (a: SKIDVector3, b: float32): Result<SKIDVector3, DivideByZeroException> =
+            if b = 0.0f then Error (DivideByZeroException "Division by zero") else Ok (SKIDVector3(a.x / b, a.y / b, a.z / b))
+    [<StructLayout(LayoutKind.Sequential)>]
+    [<Struct>]
+    type SKIDVector2 =
+        val x: float32
+        val y: float32
+        new (_x, _y) = { x = _x; y = _y }
+        static member (+) (a: SKIDVector2, b: SKIDVector2) =
+            SKIDVector2(a.x + b.x, a.y + b.y)
+        static member (-) (a: SKIDVector2, b: SKIDVector2) =
+            SKIDVector2(a.x - b.x, a.y - b.y)
+        static member (*) (a: SKIDVector2, b: float32) =
+            SKIDVector2(a.x * b, a.y * b)
+        static member (*) (a: SKIDVector2, b: SKIDVector2) =
+            SKIDVector2(a.x * b.x, a.y * b.y)
+        static member (/) (a: SKIDVector2, b: float32): Result<SKIDVector2, DivideByZeroException> =
+            if b = 0.0f then Error (DivideByZeroException "Division by zero") else Ok (SKIDVector2(a.x / b, a.y / b))
+    
+    
 
     [<Class>]
     type ColorSpaceBoundary =
