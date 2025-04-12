@@ -22,13 +22,13 @@ module NormalModule =
         let setPixel (x: int) (y: int) (color: SKIDColor) =
             result.[y * width + x] <- color
 
-        for x in 1 .. width - 2 do
-            for y in 1 .. height - 2 do
+        for x in 0 .. width - 1 do
+            for y in 0 .. height - 1 do
                 let center = computeGrayscale (getPixel x y)
-                let left   = computeGrayscale (getPixel (x - 1) y)
-                let right  = computeGrayscale (getPixel (x + 1) y)
-                let top    = computeGrayscale (getPixel x (y + 1))
-                let bottom = computeGrayscale (getPixel x (y - 1))
+                let left   = computeGrayscale (getPixel (max 0 (x - 1)) y)
+                let right  = computeGrayscale (getPixel (min (width - 1) (x + 1)) y)
+                let top    = computeGrayscale (getPixel x (min (height - 1) (y + 1)))
+                let bottom = computeGrayscale (getPixel x (max 0 (y - 1)))
 
                 let dx = (right - left) * xFactor
                 let dy = (top - bottom) * yFactor
@@ -116,3 +116,22 @@ module NormalModule =
                 normalizeVec3 scaled
             else SKIDVector3(0.0f, 0.0f, 1.0f) // fallback
         ) normals
+
+    type UVNormalMapMakeConfig = { 
+        UVs: SKIDVector2[]
+        Positions: SKIDVector3[]
+        Triangles: int[]
+    }
+    let generateNormalMapFromUV (input: ImageProcessInput<UVNormalMapMakeConfig>) : SKIDImage =
+        let width = input.image.width
+        let height = input.image.height
+        let src = input.image.pixels
+        let result = Array.zeroCreate<SKIDColor> (width * height)
+        let normals = computeNormalFromUV input.config.Value.UVs input.config.Value.Positions input.config.Value.Triangles
+        for i in 0 .. normals.Length - 1 do
+            let n = normals.[i]
+            let r = clampColorComponent ((n.x * 0.5f) + 0.5f)
+            let g = clampColorComponent ((n.y * 0.5f) + 0.5f)
+            let b = clampColorComponent ((n.z * 0.5f) + 0.5f)
+            result.[i] <- SKIDColor(r, g, b, 1.0f)
+        SKIDImage(result, width, height)

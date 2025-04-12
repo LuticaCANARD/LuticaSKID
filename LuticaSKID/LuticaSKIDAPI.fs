@@ -7,6 +7,7 @@ open System.Collections.Generic
 type ImageProcessCommand =
     | GenerateNormalMap of obj
     | GenerateMatcapMap of obj
+    | GenerateNormalMapFromUV of obj
 
 
 
@@ -26,4 +27,9 @@ type LuticaSKIDAPI () =
             | :? ImageProcessInput<MatcapModule.MatcapConfig> as input ->
                 MatcapModule.generateMatcapMap input
             | _ -> failwith "Invalid input for GenerateMatcapMap"
+        | GenerateNormalMapFromUV(boxedInput) ->
+            match boxedInput with
+            | :? ImageProcessInput<NormalModule.UVNormalMapMakeConfig> as input ->
+                NormalModule.generateNormalMapFromUV input
+            | _ -> failwith "Invalid input for GenerateNormalMapFromUV"
     

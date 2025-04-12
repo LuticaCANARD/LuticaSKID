@@ -1,5 +1,4 @@
 ﻿namespace LuticaSKID
-open System.Runtime.CompilerServices
 
 [<System.Runtime.CompilerServices.Extension>]
 [<Sealed>]
