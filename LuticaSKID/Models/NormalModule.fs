@@ -117,6 +117,8 @@ module NormalModule =
             else SKIDVector3(0.0f, 0.0f, 1.0f) // fallback
         ) normals
 
+
+    // 삭제되어야 할 수도 있다.
     type UVNormalMapMakeConfig = { 
         UVs: SKIDVector2[]
         Normals: SKIDVector3[]
