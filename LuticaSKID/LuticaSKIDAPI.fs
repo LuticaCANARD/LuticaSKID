@@ -5,9 +5,9 @@ open System.Runtime.InteropServices
 open System.Collections.Generic
 
 type ImageProcessCommand =
-    | GenerateNormalMap of obj
-    | GenerateMatcapMap of obj
-    | GenerateNormalMapFromUV of obj
+    | GenerateNormalMap of ImageProcessInput<NormalModule.NormalMapConfig>
+    | GenerateMatcapMap of ImageProcessInput<MatcapModule.MatcapConfig>
+    | GenerateNormalMapFromUV of ImageProcessInput<NormalModule.UVNormalMapMakeConfig>
 
 
 
@@ -16,20 +16,12 @@ type LuticaSKIDAPI () =
 
     member this.Process(cmd: ImageProcessCommand) : SKIDImage =
         match cmd with
-        | GenerateNormalMap(boxedInput) ->
-            match boxedInput with
-            | :? ImageProcessInput<NormalModule.NormalMapConfig> as input ->
-                NormalModule.generateNormalMap input
-            | _ -> failwith "Invalid input for GenerateNormalMap"
+        | GenerateNormalMap(input) ->
+            NormalModule.generateNormalMap input
 
-        | GenerateMatcapMap(boxedInput) ->
-            match boxedInput with
-            | :? ImageProcessInput<MatcapModule.MatcapConfig> as input ->
-                MatcapModule.generateMatcapMap input
-            | _ -> failwith "Invalid input for GenerateMatcapMap"
-        | GenerateNormalMapFromUV(boxedInput) ->
-            match boxedInput with
-            | :? ImageProcessInput<NormalModule.UVNormalMapMakeConfig> as input ->
-                NormalModule.generateNormalMapFromUV input
-            | _ -> failwith "Invalid input for GenerateNormalMapFromUV"
+        | GenerateMatcapMap(input) ->
+            MatcapModule.generateMatcapMap input
+
+        | GenerateNormalMapFromUV(input) ->
+            NormalModule.generateNormalMapFromFBX input
     

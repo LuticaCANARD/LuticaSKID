@@ -22,4 +22,7 @@ module SKIDToolFunction =
     let inline normalize (x: float32, y: float32, z: float32) : (float32 * float32 * float32) =
         let len = sqrt (x * x + y * y + z * z)
         if len = 0.0f then (0.0f, 0.0f, 0.0f) else (x / len, y / len, z / len)
+    let inline normalize_SKIDVector3 (x: float32, y: float32, z: float32) : SKIDVector3 =
+        let len = sqrt (x * x + y * y + z * z)
+        if len = 0.0f then SKIDVector3 (0.0f, 0.0f, 0.0f) else SKIDVector3 (x / len, y / len, z / len)
     let inline clamp01 (v: float32) = SKIDColor.FilteringNotVaildColorNumber v

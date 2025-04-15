@@ -60,7 +60,7 @@ module NormalModule =
                 a.x * b.y - a.y * b.x
             )
 
-        let normalizeVec3 (v: SKIDVector3) =
+        let inline normalizeVec3 (v: SKIDVector3) =
             let len = sqrt (v.x * v.x + v.y * v.y + v.z * v.z)
             if len = 0.0f then SKIDVector3(0.0f, 0.0f, 0.0f)
             else SKIDVector3(v.x / len, v.y / len, v.z / len)
@@ -119,19 +119,43 @@ module NormalModule =
 
     type UVNormalMapMakeConfig = { 
         UVs: SKIDVector2[]
-        Positions: SKIDVector3[]
+        Normals: SKIDVector3[]
         Triangles: int[]
     }
     let generateNormalMapFromUV (input: ImageProcessInput<UVNormalMapMakeConfig>) : SKIDImage =
-        let width = input.image.width
-        let height = input.image.height
-        let src = input.image.pixels
-        let result = Array.zeroCreate<SKIDColor> (width * height)
-        let normals = computeNormalFromUV input.config.Value.UVs input.config.Value.Positions input.config.Value.Triangles
-        for i in 0 .. normals.Length - 1 do
-            let n = normals.[i]
-            let r = clampColorComponent ((n.x * 0.5f) + 0.5f)
-            let g = clampColorComponent ((n.y * 0.5f) + 0.5f)
-            let b = clampColorComponent ((n.z * 0.5f) + 0.5f)
-            result.[i] <- SKIDColor(r, g, b, 1.0f)
+        let width, height = input.image.width, input.image.height
+        let src, result = input.image.pixels, Array.zeroCreate<SKIDColor> (width * height)
+        let normals = computeNormalFromUV input.config.Value.UVs input.config.Value.Normals input.config.Value.Triangles
+
+        let getPixel x y = src.[y * width + x]
+        SKIDImage(result, width, height)
+
+    let generateNormalMapFromFBX (input: ImageProcessInput<UVNormalMapMakeConfig>) : SKIDImage =
+        let width, height = input.image.width, input.image.height
+        let src, result = input.image.pixels, Array.zeroCreate<SKIDColor> (width * height)
+        let uvs, normals, triangles = input.config.Value.UVs, input.config.Value.Normals, input.config.Value.Triangles
+
+        let setPixel x y color = result.[y * width + x] <- color
+
+        for i in 0 .. 3 .. triangles.Length - 3 do
+            let i0, i1, i2 = triangles.[i], triangles.[i + 1], triangles.[i + 2]
+            let uv0, uv1, uv2 = uvs.[i0], uvs.[i1], uvs.[i2]
+            let n0, n1, n2 = normals.[i0], normals.[i1], normals.[i2]
+
+            for x in 0 .. width - 1 do
+                for y in 0 .. height - 1 do
+                    let px, py = float32 x / float32 (width - 1), 1.0f - (float32 y / float32 (height - 1))
+                    let p = SKIDVector2(px, py)
+
+                    let w0 = ((uv1.y - uv2.y) * (p.x - uv2.x) + (uv2.x - uv1.x) * (p.y - uv2.y)) / ((uv1.y - uv2.y) * (uv0.x - uv2.x) + (uv2.x - uv1.x) * (uv0.y - uv2.y))
+                    let w1 = ((uv2.y - uv0.y) * (p.x - uv2.x) + (uv0.x - uv2.x) * (p.y - uv2.y)) / ((uv1.y - uv2.y) * (uv0.x - uv2.x) + (uv2.x - uv1.x) * (uv0.y - uv2.y))
+                    let w2 = 1.0f - w0 - w1
+
+                    if w0 >= 0.0f && w1 >= 0.0f && w2 >= 0.0f then
+                        let nx, ny, nz = w0 * n0.x + w1 * n1.x + w2 * n2.x, w0 * n0.y + w1 * n1.y + w2 * n2.y, w0 * n0.z + w1 * n1.z + w2 * n2.z
+                        let normalized = normalize_SKIDVector3(nx, ny, nz)
+
+                        let r, g, b = clampColorComponent ((normalized.x * 0.5f) + 0.5f), clampColorComponent ((normalized.y * 0.5f) + 0.5f), clampColorComponent ((normalized.z * 0.5f) + 0.5f)
+                        setPixel x y (SKIDColor(r, g, b, 1.0f))
+
         SKIDImage(result, width, height)
