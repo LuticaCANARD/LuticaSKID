@@ -21,27 +21,39 @@ module ColorClustering =
             a <- a + c.a
         SKIDColor(r / n, g / n, b / n, a / n)
 
+    let kMeansPlusPlusInit (pixels: SKIDColor[]) (k: int) =
+        let rand = Random()
+        let centroids = ResizeArray<SKIDColor>()
+        centroids.Add(pixels.[rand.Next(pixels.Length)])
+
+        while centroids.Count < k do
+            let distances = pixels |> Array.map (fun p ->
+                centroids |> Seq.map (fun c -> distance p c) |> Seq.min
+            )
+            let probabilities = distances |> Array.map (fun d -> d * d)
+            let cumulative = probabilities |> Array.scan (+) 0.0f |> Array.tail
+            let total = cumulative.[cumulative.Length - 1]
+            let r = float32 (rand.NextDouble()) * total
+            let nextCentroid = pixels.[Array.findIndex (fun c -> c >= r) cumulative]
+            centroids.Add(nextCentroid)
+
+        centroids.ToArray()
+
     let kMeans (pixels: SKIDColor[]) (init: InitType) =
         let rand = Random()
-        let initialCentroids = [|
-            for _ in 1 .. init.ClusterCount ->
-                let idx = rand.Next(pixels.Length)
-                pixels.[idx]
-        |]
-
+        let initialCentroids = kMeansPlusPlusInit pixels init.ClusterCount
         let mutable centroids = initialCentroids
 
         for _ in 1 .. init.Iterations do
             let clusters = Array.init init.ClusterCount (fun _ -> ResizeArray<SKIDColor>())
-            for p in pixels do
-                let idx =
-                    centroids
-                    |> Array.mapi (fun i c -> i, distance p c)
-                    |> Array.minBy snd
-                    |> fst
-                clusters.[idx].Add p
+            pixels
+            |> Array.Parallel.iter (fun p ->
+                let distances = centroids |> Array.map (fun c -> distance p c)
+                let idx = distances |> Array.mapi (fun i d -> i, d) |> Array.minBy snd |> fst
+                lock clusters.[idx] (fun () -> clusters.[idx].Add p)
+            )
 
-            centroids <- clusters |> Array.map (fun c ->
+            centroids <- clusters |> Array.Parallel.map (fun c ->
                 if c.Count = 0 then
                     pixels.[rand.Next(pixels.Length)]
                 else
