@@ -28,9 +28,12 @@ module public StructTypes =
             SKIDColor(a.r - b.r, a.g - b.g, a.b - b.b, a.a - b.a )
         static member (*) (a: SKIDColor, b: SKIDColor) =
             SKIDColor(a.r * b.r, a.g * b.g, a.b * b.b, a.a * b.a)
+        static member (*) (a: SKIDColor, b: int) =
+            SKIDColor(a.r * float32 b, a.g * float32 b, a.b * float32 b, a.a * float32 b)
         static member (/) (a: SKIDColor, b: SKIDColor): Result<SKIDColor, DivideByZeroException> =
             if b.r = 0.0f || b.g = 0.0f || b.b = 0.0f then Error (DivideByZeroException "Division by zero") else Ok (SKIDColor(a.r / b.r, a.g / b.g, a.b / b.b, a.a / b.a))
-
+        static member DivideByInt(a: SKIDColor, b: int): SKIDColor =
+            SKIDColor(a.r / float32 b, a.g / float32 b, a.b / float32 b, a.a / float32 b)
         static member (*) (a: SKIDColor, b: float32) =
             SKIDColor(a.r * b, a.g * b, a.b * b, a.a * b)
         static member (+) (a: SKIDColor, b: float32) =

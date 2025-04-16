@@ -43,25 +43,36 @@ module ColorClustering =
         let rand = Random()
         let initialCentroids = kMeansPlusPlusInit pixels init.ClusterCount
         let mutable centroids = initialCentroids
+        let mutable hasConverged = false
 
         for _ in 1 .. init.Iterations do
-            let clusters = Array.init init.ClusterCount (fun _ -> ResizeArray<SKIDColor>())
-            pixels
-            |> Array.Parallel.iter (fun p ->
-                let distances = centroids |> Array.map (fun c -> distance p c)
-                let idx = distances |> Array.mapi (fun i d -> i, d) |> Array.minBy snd |> fst
-                lock clusters.[idx] (fun () -> clusters.[idx].Add p)
-            )
+            if not hasConverged then
+                let clusters = Array.init init.ClusterCount (fun _ -> ResizeArray<SKIDColor>())
+                pixels
+                |> Array.Parallel.iter (fun p ->
+                    let distances = centroids |> Array.map (fun c -> distance p c)
+                    let idx = distances |> Array.mapi (fun i d -> i, d) |> Array.minBy snd |> fst
+                    lock clusters.[idx] (fun () -> clusters.[idx].Add p)
+                )
 
-            centroids <- clusters |> Array.Parallel.map (fun c ->
-                if c.Count = 0 then
-                    pixels.[rand.Next(pixels.Length)]
-                else
-                    average (List.ofSeq c)
-            )
+                let newCentroids = clusters |> Array.Parallel.map (fun c ->
+                    if c.Count = 0 then
+                        pixels.[rand.Next(pixels.Length)]
+                    else
+                        average (List.ofSeq c)
+                )
+
+                // 중심점 변화량 계산
+                hasConverged <- 
+                    Array.zip centroids newCentroids
+                    |> Array.forall (fun (oldC, newC) -> distance oldC newC < 0.001f)
+
+                centroids <- newCentroids
 
         centroids
 
+    // TODO : 너무 과도한 연산량이 있어서 K-means에 대해서 다시 군집화가 필요함.
+    // 군집화에 대해서 다시 구현할 것.
     let getDominantColor (pixels: SKIDColor[]) (init: InitType) =
         let centroids = kMeans pixels init
 

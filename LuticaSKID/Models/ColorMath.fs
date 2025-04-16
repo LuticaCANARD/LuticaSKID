@@ -3,28 +3,26 @@
 open StructTypes
 open SKIDToolFunction
 module ColorMath =
-    type ColorMoodOption = {clusterCount : int}
+    type ColorMoodOption = {refrenceImage:SKIDImage; iterCount:int;clusterCount : int; addFactor:float32}
     let clampColorComponent (v: float32) = SKIDColor.FilteringNotVaildColorNumber v
 
     let averageColor (pixels: SKIDColor[]) =
-        let mutable r, g, b, a, n = 0.0f, 0.0f, 0.0f, 0.0f, 0
-        for c in pixels do
-            let isTooWhite = c.r >= SKIDConstants.MaxValue &&
-                             c.g >= SKIDConstants.MaxValue &&
-                             c.b >= SKIDConstants.MaxValue
-            let isTooTransparent = c.a <= SKIDConstants.MinValue
+        let validPixels = 
+            pixels 
+            |> Array.filter (fun c -> 
+                not (c.r >= SKIDConstants.MaxValue && 
+                        c.g >= SKIDConstants.MaxValue && 
+                        c.b >= SKIDConstants.MaxValue) &&
+                c.a > SKIDConstants.MinValue)
 
-            if not isTooWhite && not isTooTransparent then
-                n <- n + 1
-                r <- r + c.r
-                g <- g + c.g
-                b <- b + c.b
-                a <- a + c.a
-
-        if n = 0 then
+        if Array.isEmpty validPixels then
             SKIDColor(1.0f, 1.0f, 1.0f, 1.0f)
         else
-            let n = float32 n
+            let r, g, b, a = 
+                validPixels 
+                |> Array.fold (fun (r, g, b, a) c -> 
+                    (r + c.r, g + c.g, b + c.b, a + c.a)) (0.0f, 0.0f, 0.0f, 0.0f)
+            let n = float32 validPixels.Length
             SKIDColor(r / n, g / n, b / n, a / n)
 
     let shiftColor (color: SKIDColor) (diff: SKIDColor) =
@@ -35,7 +33,7 @@ module ColorMath =
             clampColorComponent (color.a + diff.a)
         )
 
-    let applyMapping (source: SKIDColor[]) (target: SKIDColor[]) =
+    let applyMapping (addFactor:float32)(source: SKIDColor[]) (target: SKIDColor[]) =
         let avgS = averageColor source
         let avgT = averageColor target
         let diff = SKIDColor(
@@ -44,12 +42,12 @@ module ColorMath =
             avgT.b - avgS.b,
             avgT.a - avgS.a
         )
-        source |> Array.map (fun c -> shiftColor c diff)
+        source |> Array.map (fun c -> shiftColor c (diff * addFactor))
 
-    let getMoodColor (source: SKIDColor[]) (k: int) =
+    let getMoodColor (source: SKIDColor[]) (k: int)(iterCount:int) =
         let domColor = ColorClustering.getDominantColor source {
             ClusterCount = k
-            Iterations = 10
+            Iterations = iterCount
         }
         let diff = SKIDColor(domColor.r - 0.5f, domColor.g - 0.5f, domColor.b - 0.5f, 0.0f)
         source |> Array.map (fun c -> shiftColor c diff)
@@ -59,5 +57,9 @@ module ColorMath =
     let applyMoodColor (input: ImageProcessInput<ColorMoodOption>) : SKIDImage =
         let pixels = input.image.pixels
         let k = input.config.Value.clusterCount
-        let shifted = getMoodColor pixels k
+        let refrenceImage = input.config.Value.refrenceImage
+        let iterCount = input.config.Value.iterCount
+        let addFactor = input.config.Value.addFactor
+        // TODO : addFactor가 자동으로 조정되는 자동밝기모드 ... > 히스토그램?
+        let shifted = getMoodColor refrenceImage.pixels k iterCount |> applyMapping addFactor pixels
         SKIDImage(shifted, input.image.width, input.image.height)
