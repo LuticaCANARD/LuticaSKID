@@ -1,35 +1,44 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework> <!-- Unity 호환 -->
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <RootNamespace>LuticaSKID</RootNamespace>
-    <Configurations>Debug;Release;LuticaL</Configurations>
-  </PropertyGroup>
+<PropertyGroup>
+ <TargetFramework>net48</TargetFramework> <!-- Unity 호환 -->
+ <GenerateDocumentationFile>true</GenerateDocumentationFile>
+ <RootNamespace>LuticaSKID</RootNamespace>
+ <Configurations>Debug;Release;LuticaL</Configurations>
+</PropertyGroup>
 
-  <ItemGroup>
-    <None Include="Directory.Build.props.sample" />
-    <None Include="Directory.Build.props" />
-    <Compile Include="Schema\SKIDConstants.fs" />
-    <Compile Include="Schema\StructTypes.fs" />
-    <Compile Include="Schema\SKIDToolFunction.fs" />
-    <Compile Include="Models\MatcapModule.fs" />
-    <Compile Include="Models\NormalModule.fs" />
-    <Compile Include="Models\ColorGrammer.fs" />
-    <Compile Include="Models\ColorClustring.fs" />
-    <Compile Include="Models\ColorMath.fs" />
-    <Compile Include="ImagePipeline.fs" />
-    <Compile Include="LuticaSKIDAPI.fs" />
-  </ItemGroup>
-  <Target Name="LutiacaL" AfterTargets="Build">
-    <PropertyGroup>
-      <UnityPluginDir>$(UnityPluginPath)</UnityPluginDir>
-    </PropertyGroup>
+<ItemGroup>
+ <None Include="Directory.Build.props.sample" />
+ <None Include="Directory.Build.props" />
+ <Compile Include="Schema\SKIDConstants.fs" />
+ <Compile Include="Schema\StructTypes.fs" />
+ <Compile Include="Schema\SKIDToolFunction.fs" />
+ <Compile Include="Models\TextureImageProcessing.fs" />
+ <Compile Include="Models\MatcapModule.fs" />
+ <Compile Include="Models\NormalModule.fs" />
+ <Compile Include="Models\ColorGrammer.fs" />
+ <Compile Include="Models\ColorClustring.fs" />
+ <Compile Include="Models\ColorMath.fs" />
+ <Compile Include="ImagePipeline.fs" />
+ <Compile Include="LuticaSKIDAPI.fs" />
+</ItemGroup>
 
-    <ItemGroup>
-      <BuiltFiles Include="$(OutputPath)\$(TargetFileName)" />
-    </ItemGroup>
+<ItemGroup>
+ <PackageReference Include="ILGPU" Version="1.5.2" />
+ <PackageReference Include="System.Reflection.Metadata" Version="1.8.1" />
+</ItemGroup>
 
-    <Copy SourceFiles="@(BuiltFiles)" DestinationFolder="$(UnityPluginDir)" SkipUnchangedFiles="true" />
-  </Target>
+<Target Name="LutiacaL" AfterTargets="Build">
+ <PropertyGroup>
+   <UnityPluginDir>$(UnityPluginPath)</UnityPluginDir>
+ </PropertyGroup>
+
+ <ItemGroup>
+   <BuiltFiles Include="$(OutputPath)\$(TargetFileName)" />
+   <BuiltFiles Include="$(OutputPath)\ILGPU.dll" /> <!-- ILGPU 포함 -->
+   <!-- System.Reflection.Metadata 포함 -->
+ </ItemGroup>
+
+ <Copy SourceFiles="@(BuiltFiles)" DestinationFolder="$(UnityPluginDir)" SkipUnchangedFiles="true" />
+</Target>
 </Project>

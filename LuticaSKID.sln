@@ -14,12 +14,15 @@ Global
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{BF5009D8-A628-4DE0-B89B-84D24731CCEA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{BF5009D8-A628-4DE0-B89B-84D24731CCEA}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{BF5009D8-A628-4DE0-B89B-84D24731CCEA}.LuticaL|Any CPU.ActiveCfg = Release|Any CPU
-		{BF5009D8-A628-4DE0-B89B-84D24731CCEA}.LuticaL|Any CPU.Build.0 = Release|Any CPU
+		{BF5009D8-A628-4DE0-B89B-84D24731CCEA}.LuticaL|Any CPU.ActiveCfg = LuticaL|Any CPU
+		{BF5009D8-A628-4DE0-B89B-84D24731CCEA}.LuticaL|Any CPU.Build.0 = LuticaL|Any CPU
 		{BF5009D8-A628-4DE0-B89B-84D24731CCEA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BF5009D8-A628-4DE0-B89B-84D24731CCEA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {1E5F801D-A467-4E2E-B08F-3C6C8284C027}
 	EndGlobalSection
 EndGlobal

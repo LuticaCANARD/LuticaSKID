@@ -9,6 +9,7 @@ type ImageProcessCommand =
     | GenerateMatcapMap of ImageProcessInput<MatcapModule.MatcapConfig>
     | GenerateNormalMapFromUV of ImageProcessInput<NormalModule.UVNormalMapMakeConfig>
     | GenerateAvgTexture of ImageProcessInput<ColorMath.ColorMoodOption>
+    | ProcessImage of ImageProcessInput<Models.TextureImageProcessing.ImageProcessInputOption>
 
 
 
@@ -25,4 +26,6 @@ type LuticaSKIDAPI () =
             NormalModule.generateNormalMapFromFBX input
         | GenerateAvgTexture(input) ->
             ColorMath.applyMoodColor input
+        | ProcessImage(input) ->
+            Models.TextureImageProcessing.GenerateProcessedImage input
     
