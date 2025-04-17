@@ -48,6 +48,8 @@ module TextureImageProcessing =
                 let GPUReferenceImage = GPUAccelerator.Allocate1D<SKIDColor>(option.refrenceImage.pixels) 
                 let GPUResultImage = GPUAccelerator.Allocate1D<SKIDColor>(pixels.Length)
 
+                // 유의 : GPU에 들어가는 Lambda에는 그 어떠한 Capture도 들어갈 수 없다.
+                // 따라서, GPU에서 사용할 Lambda는 반드시 모든 변수를 인자로 받고, Enum 역시 int로 변환해야 한다.
                 let kernel (index: Index1D) 
                            (origin: ArrayView1D<SKIDColor, Stride1D.Dense>) 
                            (reference: ArrayView1D<SKIDColor, Stride1D.Dense>) 
