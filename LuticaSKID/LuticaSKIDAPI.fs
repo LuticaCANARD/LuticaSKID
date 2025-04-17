@@ -11,21 +11,12 @@ type ImageProcessCommand =
     | GenerateAvgTexture of ImageProcessInput<ColorMath.ColorMoodOption>
     | ProcessImage of ImageProcessInput<Models.TextureImageProcessing.ImageProcessInputOption>
 
-
-
 [<ComVisible(true)>]
 type LuticaSKIDAPI () =
-
     member this.Process(cmd: ImageProcessCommand) : SKIDImage =
         match cmd with
-        | GenerateNormalMap(input) ->
-            NormalModule.generateNormalMap input
-        | GenerateMatcapMap(input) ->
-            MatcapModule.generateMatcapMap input
-        | GenerateNormalMapFromUV(input) ->
-            NormalModule.generateNormalMapFromFBX input
-        | GenerateAvgTexture(input) ->
-            ColorMath.applyMoodColor input
-        | ProcessImage(input) ->
-            Models.TextureImageProcessing.GenerateProcessedImage input
-    
+        | GenerateNormalMap(input) -> NormalModule.generateNormalMap input
+        | GenerateMatcapMap(input) -> MatcapModule.generateMatcapMap input
+        | GenerateNormalMapFromUV(input) -> NormalModule.generateNormalMapFromFBX input
+        | GenerateAvgTexture(input) -> ColorMath.applyMoodColor input
+        | ProcessImage(input) -> Models.TextureImageProcessing.Processer.Process input
