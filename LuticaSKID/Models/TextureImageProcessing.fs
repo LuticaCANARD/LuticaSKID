@@ -14,6 +14,7 @@ module TextureImageProcessing =
         | Subtract = 1
         | Multiply = 2
         | Divide  = 3
+        | Average = 4
     type ImageProcessTwoImageOption = {
         refrenceImage: SKIDImage
         constant: float32
@@ -63,6 +64,7 @@ module TextureImageProcessing =
                         | 1 -> a - b * constant
                         | 2 -> a * b * constant
                         | 3 -> a / (b + minval) * constant
+                        | 4 -> (a + b) / 2.0f * constant
                         | _ -> a + b * constant
 
                     result.[index] <- processing origin.[index] reference.[index]
