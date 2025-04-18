@@ -40,10 +40,18 @@ module TextureImageProcessing =
 
     type Processer() =
         static member private ProcessImage(pixels: SKIDColor[], width: int, height: int,opcode:ImageProcessTwoImage, option: ImageProcessTwoImageOption) : SKIDImage =
+            if pixels.Length = 0 then
+                raise (ArgumentException("The input image pixels cannot be empty."))
+            
+            let resizedImage = if option.refrenceImage.width <> width || option.refrenceImage.height <> height then resizeImage option.refrenceImage width height else option.refrenceImage
+
+
+
+
             let GPUContext = Context.CreateDefault()
             let GPUAccelerator = GPUContext.GetPreferredDevice(preferCPU=false).CreateAccelerator(GPUContext)
             let GPUOriginImage = GPUAccelerator.Allocate1D<SKIDColor>(pixels) 
-            let GPUReferenceImage = GPUAccelerator.Allocate1D<SKIDColor>(option.refrenceImage.pixels) 
+            let GPUReferenceImage = GPUAccelerator.Allocate1D<SKIDColor>(resizedImage.pixels) 
             let GPUResultImage = GPUAccelerator.Allocate1D<SKIDColor>(pixels.Length)
             // 유의 : GPU에 들어가는 Lambda에는 그 어떠한 Capture도 들어갈 수 없다.
             // 따라서, GPU에서 사용할 Lambda는 반드시 모든 변수를 인자로 받고, Enum 역시 int로 변환해야 한다.
@@ -91,9 +99,9 @@ module TextureImageProcessing =
                        (result: ArrayView1D<SKIDColor, Stride1D.Dense> )
                        (constant: float32) =
                        result[index] <- SKIDColor(
-                              origin.[index].r * refColor.r * constant,
-                              origin.[index].g * refColor.g * constant,
-                              origin.[index].b * refColor.b * constant,
+                              (origin.[index].r + refColor.r * constant),
+                              (origin.[index].g + refColor.g * constant),
+                              (origin.[index].b + refColor.b * constant),
                               origin.[index].a
                           )
             let kernelLauncher = GPUAccelerator.LoadAutoGroupedStreamKernel<Index1D, ArrayView1D<SKIDColor, Stride1D.Dense>, SKIDColor, ArrayView1D<SKIDColor, Stride1D.Dense>,float32> kernel
@@ -120,7 +128,7 @@ module TextureImageProcessing =
                     let mainColorOnReference = 
                         option.refrenceImage.pixels
                         |> Array.Parallel.filter filteringVaildColor
-                        |> Array.averageBy (fun c -> SKIDColor(c.r, c.g, c.b, 1.0f))
+                        |> Array.average
                     Processer.ProcessMainColor(input.image, mainColorOnReference, option.constant)
 
                     
