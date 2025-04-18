@@ -42,6 +42,8 @@ module public StructTypes =
             SKIDColor(a.r - b, a.g - b, a.b - b, a.a - b)
         static member (/) (a: SKIDColor, b: float32) =
             SKIDColor(a.r / b, a.g / b, a.b / b, a.a / b)
+        static member Zero =
+            SKIDColor(SKIDConstants.MinValue, SKIDConstants.MinValue, SKIDConstants.MinValue, SKIDConstants.MinValue)
     [<StructLayout(LayoutKind.Sequential)>]
     [<Struct>]
     type SKIDVector3 =         
