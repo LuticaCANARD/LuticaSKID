@@ -72,10 +72,7 @@ module TextureImageProcessing =
                         | 2 -> a * b * constant
                         | 3 -> a / (b + minval) * constant
                         | 4 -> (a + b) / 2.0f * constant
-                        | 5-> if b.a <=0.f then a 
-                                else 
-                                    let origin = a + b * constant
-                                    SKIDColor(origin.r,origin.g,origin.b,a.a)
+                        | 5->if b.a <= 0.0f then a else generateNoneAlphaColor (a + b * constant)
                         | _ -> a + b * constant
 
                     result.[index] <- processing origin.[index] reference.[index]

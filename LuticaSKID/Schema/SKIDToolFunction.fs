@@ -1,5 +1,6 @@
 ﻿namespace LuticaSKID
 open LuticaSKID.StructTypes;
+open System;
 module SKIDToolFunction =
     let inline distance (a: SKIDColor) (b: SKIDColor) =
         let dr, dg, db = a.r - b.r, a.g - b.g, a.b - b.b
@@ -28,6 +29,8 @@ module SKIDToolFunction =
     let inline clamp01 (v: float32) = SKIDColor.FilteringNotVaildColorNumber v
     
     let inline resizeImage (image: SKIDImage) (targetWidth: int) (targetHeight: int) : SKIDImage =
+        if targetWidth <= 0 || targetHeight <= 0 then
+            raise (ArgumentException("Target width and height must be positive."))
         let scaleX = float image.width / float targetWidth
         let scaleY = float image.height / float targetHeight
         let resizedPixels = 
@@ -39,3 +42,5 @@ module SKIDToolFunction =
                 image.pixels.[srcY * image.width + srcX]
             )
         SKIDImage(resizedPixels, targetWidth, targetHeight)
+    let inline generateNoneAlphaColor(color: SKIDColor) =
+        SKIDColor(color.r, color.g, color.b, 1.0f)
