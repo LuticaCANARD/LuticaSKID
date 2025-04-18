@@ -15,6 +15,7 @@ module TextureImageProcessing =
         | Multiply = 2
         | Divide  = 3
         | Average = 4
+        | ColorBlend = 5
     type ImageProcessTwoImageOption = {
         refrenceImage: SKIDImage
         constant: float32
@@ -35,6 +36,7 @@ module TextureImageProcessing =
     type ImageProcessInputOption = {
         processType: ImageProcessType
     }
+
     type Processer() =
         static member public Process(input: ImageProcessInput<ImageProcessInputOption>) : SKIDImage =
             let processType = input.config.Value.processType
@@ -43,10 +45,15 @@ module TextureImageProcessing =
                 let pixels = input.image.pixels
                 let width = input.image.width
                 let height = input.image.height
+
+                        
+                let resizedRefImage = resizeImage option.refrenceImage width height
+
+
                 let GPUContext = Context.CreateDefault()
                 let GPUAccelerator = GPUContext.GetPreferredDevice(preferCPU=false).CreateAccelerator(GPUContext)
                 let GPUOriginImage = GPUAccelerator.Allocate1D<SKIDColor>(pixels) 
-                let GPUReferenceImage = GPUAccelerator.Allocate1D<SKIDColor>(option.refrenceImage.pixels) 
+                let GPUReferenceImage = GPUAccelerator.Allocate1D<SKIDColor>(resizedRefImage.pixels) 
                 let GPUResultImage = GPUAccelerator.Allocate1D<SKIDColor>(pixels.Length)
 
                 // 유의 : GPU에 들어가는 Lambda에는 그 어떠한 Capture도 들어갈 수 없다.
@@ -65,6 +72,10 @@ module TextureImageProcessing =
                         | 2 -> a * b * constant
                         | 3 -> a / (b + minval) * constant
                         | 4 -> (a + b) / 2.0f * constant
+                        | 5-> if b.a <=0.f then a 
+                                else 
+                                    let origin = a + b * constant
+                                    SKIDColor(origin.r,origin.g,origin.b,a.a)
                         | _ -> a + b * constant
 
                     result.[index] <- processing origin.[index] reference.[index]

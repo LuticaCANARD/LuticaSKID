@@ -26,3 +26,16 @@ module SKIDToolFunction =
         let len = sqrt (x * x + y * y + z * z)
         if len = 0.0f then SKIDVector3 (0.0f, 0.0f, 0.0f) else SKIDVector3 (x / len, y / len, z / len)
     let inline clamp01 (v: float32) = SKIDColor.FilteringNotVaildColorNumber v
+    
+    let inline resizeImage (image: SKIDImage) (targetWidth: int) (targetHeight: int) : SKIDImage =
+        let scaleX = float image.width / float targetWidth
+        let scaleY = float image.height / float targetHeight
+        let resizedPixels = 
+            Array.init (targetWidth * targetHeight) (fun i ->
+                let x = i % targetWidth
+                let y = i / targetWidth
+                let srcX = int (float x * scaleX)
+                let srcY = int (float y * scaleY)
+                image.pixels.[srcY * image.width + srcX]
+            )
+        SKIDImage(resizedPixels, targetWidth, targetHeight)
