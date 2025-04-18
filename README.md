@@ -14,6 +14,7 @@
 ## 사용한 라이브러리
 - .NET
 - FSharp.Core
+- ILGPU
 
 ## Unity 통합 등
 - 차후 작성및 지원
