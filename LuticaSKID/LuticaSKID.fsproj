@@ -20,9 +20,9 @@
  <Compile Include="Models\ColorGrammer.fs" />
  <Compile Include="Models\ColorClustring.fs" />
  <Compile Include="Models\ColorMath.fs" />
-
- <Compile Include="ImagePipeline.fs" />
- <Compile Include="LuticaSKIDAPI.fs" />
+ <Compile Include="Commands\SKIDAPICommands.fs" />
+  <Compile Include="LuticaSKIDAPI.fs" />
+  <Compile Include="Tests\SKIDToolFunctionTests.fs" />
 </ItemGroup>
 
 <ItemGroup>

@@ -93,8 +93,8 @@ module public StructTypes =
             SKIDPixelVector2(a.x * b, a.y * b)
         static member (*) (a: SKIDPixelVector2, b: SKIDPixelVector2) =
             SKIDPixelVector2(a.x * b.x, a.y * b.y)
-        static member (/) (a: SKIDPixelVector2, b: float32): Result<SKIDPixelVector2, DivideByZeroException> =
-            if b = 0.0f then Error (DivideByZeroException "Division by zero") else Ok (SKIDPixelVector2(a.x / b, a.y / b))
+        static member (/) (a: SKIDPixelVector2, b: int): Result<SKIDPixelVector2, DivideByZeroException> =
+            if b = 0 then Error (DivideByZeroException "Division by zero") else Ok (SKIDPixelVector2(a.x / b, a.y / b))
 
     [<Class>]
     type ColorSpaceBoundary =
@@ -169,11 +169,12 @@ module public StructTypes =
         new(pixels: SKIDColor[], width: int, height: int) =
             { pixels = pixels; width = width; height = height }
 
+
     [<Class>]
     type ImageProcessInput<'TSetting> = 
         val image: SKIDImage
         val config: 'TSetting option
-        new(image:SKIDImage, config: 'TSetting option) = { image = image; config = config}
+        new (image:SKIDImage, config: 'TSetting option) = { image = image; config = config }
         new (image:SKIDImage) = { image = image; config = None}
     
     type ImageProcessingOrder = 

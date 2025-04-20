@@ -87,7 +87,33 @@ module SKIDToolFunction =
 
         // Return the resized image
         SKIDImage(resizedPixels, targetWidth, targetHeight)
+    let inline resizeImageFromVector (image: SKIDImage) (targetSize:SKIDPixelVector2) : SKIDImage = 
+        resizeImage image targetSize.x targetSize.y
     let inline generateNoneAlphaColor(color: SKIDColor) =
         SKIDColor(color.r, color.g, color.b, 1.0f)
     let inline filteringVaildColor (color: SKIDColor) =
         if color.a <= 0.0f then false else true
+
+
+    let inline cropImage (image: SKIDImage) (center: SKIDPixelVector2) (size: SKIDPixelVector2)(originImageSize:SKIDPixelVector2) : SKIDImage =
+        if size.x < 0 || size.y < 0 then
+            raise (ArgumentException("Target width and height must be positive."))
+        let width = size.x
+        let height = size.y
+        let x = center.x - (width / 2)
+        let y = center.y - (height / 2)
+        let x = clampInt 0 (originImageSize.x - 1) x
+        let y = clampInt 0 (originImageSize.y - 1) y
+        let width = clampInt 0 (originImageSize.x - 1) (x + width)
+        let height = clampInt 0 (originImageSize.y - 1) (y + height)
+        let newWidth = width - x
+        let newHeight = height - y
+        let newPixels = Array.Parallel.init (newWidth * newHeight) (fun idx ->
+            let i = idx % newWidth
+            let j = idx / newWidth
+            let srcX = x + i
+            let srcY = y + j
+            image.pixels.[srcX + srcY * image.width]
+        )
+        SKIDImage(newPixels, newWidth, newHeight)
+        
