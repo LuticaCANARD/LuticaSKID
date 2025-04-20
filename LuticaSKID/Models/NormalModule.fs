@@ -127,9 +127,7 @@ module NormalModule =
     let generateNormalMapFromUV (input: ImageProcessInput<UVNormalMapMakeConfig>) : SKIDImage =
         let width, height = input.image.width, input.image.height
         let src, result = input.image.pixels, Array.zeroCreate<SKIDColor> (width * height)
-        let normals = computeNormalFromUV input.config.Value.UVs input.config.Value.Normals input.config.Value.Triangles
 
-        let getPixel x y = src.[y * width + x]
         SKIDImage(result, width, height)
 
     let generateNormalMapFromFBX (input: ImageProcessInput<UVNormalMapMakeConfig>) : SKIDImage =

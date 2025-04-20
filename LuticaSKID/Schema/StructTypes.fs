@@ -61,6 +61,7 @@ module public StructTypes =
             SKIDVector3(a.x * b.x, a.y * b.y, a.z * b.z)
         static member (/) (a: SKIDVector3, b: float32): SKIDVector3=
             SKIDVector3(a.x / b, a.y / b, a.z / b)
+
     [<StructLayout(LayoutKind.Sequential)>]
     [<Struct>]
     type SKIDVector2 =
@@ -78,7 +79,22 @@ module public StructTypes =
         static member (/) (a: SKIDVector2, b: float32): Result<SKIDVector2, DivideByZeroException> =
             if b = 0.0f then Error (DivideByZeroException "Division by zero") else Ok (SKIDVector2(a.x / b, a.y / b))
     
-    
+    [<StructLayout(LayoutKind.Sequential)>]
+    [<Struct>]
+    type SKIDPixelVector2 =
+        val x: int
+        val y: int
+        new (_x, _y) = { x = _x; y = _y }
+        static member (+) (a: SKIDPixelVector2, b: SKIDPixelVector2) =
+            SKIDPixelVector2(a.x + b.x, a.y + b.y)
+        static member (-) (a: SKIDPixelVector2, b: SKIDPixelVector2) =
+            SKIDPixelVector2(a.x - b.x, a.y - b.y)
+        static member (*) (a: SKIDPixelVector2, b: int) =
+            SKIDPixelVector2(a.x * b, a.y * b)
+        static member (*) (a: SKIDPixelVector2, b: SKIDPixelVector2) =
+            SKIDPixelVector2(a.x * b.x, a.y * b.y)
+        static member (/) (a: SKIDPixelVector2, b: float32): Result<SKIDPixelVector2, DivideByZeroException> =
+            if b = 0.0f then Error (DivideByZeroException "Division by zero") else Ok (SKIDPixelVector2(a.x / b, a.y / b))
 
     [<Class>]
     type ColorSpaceBoundary =
@@ -110,7 +126,41 @@ module public StructTypes =
             let a = this.MaxColor.a + this.MinColor.a / 2.0f
             SKIDColor(r, g, b, a)
 
-    
+
+    [<StructLayout(LayoutKind.Sequential)>]
+    [<Struct>]
+    type SKIDTexturePositionBorder =
+        val minPoint: SKIDVector2
+        val maxPoint: SKIDVector2
+        val center: SKIDVector2
+        new(
+            p1:  SKIDVector2,
+            p2:  SKIDVector2
+        ) = 
+            let minPoint_ = min p1 p2
+            let maxPoint_ = max p1 p2
+            let center_ = SKIDVector2((minPoint_.x + maxPoint_.x) / 2.0f, (minPoint_.y + maxPoint_.y) / 2.0f)
+            {
+                minPoint = minPoint_
+                maxPoint = maxPoint_
+                center = center_
+            }
+
+        new (center: SKIDVector2,width:float32,height:float32) = 
+            let minPoint_ = SKIDVector2(center.x - width / 2.0f, center.y - height / 2.0f)
+            let maxPoint_ = SKIDVector2(center.x + width / 2.0f, center.y + height / 2.0f)
+            {
+                minPoint = minPoint_
+                maxPoint = maxPoint_
+                center = center
+            }
+        member this.Contains(p: SKIDVector2) =
+            p.x >= this.minPoint.x && p.x <= this.maxPoint.x &&
+            p.y >= this.minPoint.y && p.y <= this.maxPoint.y
+
+
+
+
     [<Class>]
     type SKIDImage =
         val pixels: SKIDColor[]

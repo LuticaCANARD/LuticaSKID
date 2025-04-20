@@ -87,11 +87,6 @@ module SKIDToolFunction =
 
         // Return the resized image
         SKIDImage(resizedPixels, targetWidth, targetHeight)
-   
-        
-            
-
-
     let inline generateNoneAlphaColor(color: SKIDColor) =
         SKIDColor(color.r, color.g, color.b, 1.0f)
     let inline filteringVaildColor (color: SKIDColor) =

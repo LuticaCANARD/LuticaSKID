@@ -17,6 +17,7 @@ module TextureImageProcessing =
         | Average = 4
         | ColorBlend = 5
         | ColorDifference = 6
+        | TextureReplace = 7 // 텍스쳐 자체를 완벽하게 교체한다.
     type ImageProcessTwoImageOption = {
         refrenceImage: SKIDImage
         constant: float32
@@ -29,8 +30,13 @@ module TextureImageProcessing =
         | MotionBlur 
         | Sharpen 
         | EdgeDetection
-        | Invert 
+        | Invert
+        | ReplaceSpecialColorZoneToTranspaintColor
 
+    type ReplaceDetectType = 
+        | BackgroundIsBlack = 0         // 검은색 배경
+        | BackgroundIsWhite = 1         // 흰색 배경
+        | BackegroundIsTranspaint = 2   // 투명한 배경
     type ImageProcessType = 
         | TwoImageProcess of ImageProcessTwoImage * ImageProcessTwoImageOption
         | SingleImageProcess of SingleImageProcessType
@@ -44,15 +50,12 @@ module TextureImageProcessing =
                 raise (ArgumentException("The input image pixels cannot be empty."))
             
             let resizedImage = if option.refrenceImage.width <> width || option.refrenceImage.height <> height then resizeImage option.refrenceImage width height else option.refrenceImage
-
-
-
-
-            let GPUContext = Context.CreateDefault()
-            let GPUAccelerator = GPUContext.GetPreferredDevice(preferCPU=false).CreateAccelerator(GPUContext)
-            let GPUOriginImage = GPUAccelerator.Allocate1D<SKIDColor>(pixels) 
-            let GPUReferenceImage = GPUAccelerator.Allocate1D<SKIDColor>(resizedImage.pixels) 
-            let GPUResultImage = GPUAccelerator.Allocate1D<SKIDColor>(pixels.Length)
+            // using....
+            use GPUContext = Context.CreateDefault()
+            use GPUAccelerator = GPUContext.GetPreferredDevice(preferCPU=false).CreateAccelerator(GPUContext)
+            use GPUOriginImage = GPUAccelerator.Allocate1D<SKIDColor>(pixels) 
+            use GPUReferenceImage = GPUAccelerator.Allocate1D<SKIDColor>(resizedImage.pixels) 
+            use GPUResultImage = GPUAccelerator.Allocate1D<SKIDColor>(pixels.Length)
             // 유의 : GPU에 들어가는 Lambda에는 그 어떠한 Capture도 들어갈 수 없다.
             // 따라서, GPU에서 사용할 Lambda는 반드시 모든 변수를 인자로 받고, Enum 역시 int로 변환해야 한다.
             let kernel (index: Index1D) 
@@ -69,30 +72,24 @@ module TextureImageProcessing =
                     | 2 -> a * b * constant
                     | 3 -> a / (b + minval) * constant
                     | 4 -> (a + b) / 2.0f * constant
-                    | 5->if b.a <= 0.0f then a else generateNoneAlphaColor (a + b * constant)
+                    | 5-> if b.a <= 0.0f then a else generateNoneAlphaColor (a + b * constant)
+                    | 6 -> if b.a <= 0.0f then a else generateNoneAlphaColor (a - b * constant)
+                    | 7 -> if b.a <= 0.0f then a else generateNoneAlphaColor (b * constant)
                     | _ -> a + b * constant
                 result.[index] <- processing origin.[index] reference.[index]
             let kernelLauncher = GPUAccelerator.LoadAutoGroupedStreamKernel<Index1D, ArrayView1D<SKIDColor, Stride1D.Dense>, ArrayView1D<SKIDColor, Stride1D.Dense>, ArrayView1D<SKIDColor, Stride1D.Dense>, float32,int,float32> (kernel)
             kernelLauncher.Invoke(GPUResultImage.IntExtent, GPUOriginImage.View, GPUReferenceImage.View, GPUResultImage.View, option.constant, int opcode, 1e-5f)
-
             GPUAccelerator.Synchronize()
-
             let resultPixels = GPUResultImage.GetAsArray1D()
-            GPUOriginImage.Dispose()
-            GPUReferenceImage.Dispose()
-            GPUResultImage.Dispose()
-            GPUAccelerator.Dispose()
-            GPUContext.Dispose()
-
             SKIDImage(resultPixels, width, height)
         
         static member private ProcessMainColor(image:SKIDImage,refColor:SKIDColor,constant:float32): SKIDImage =
-            let GPUContext = Context.CreateDefault()
-            let GPUAccelerator = GPUContext.GetPreferredDevice(preferCPU=false).CreateAccelerator(GPUContext)
             let width = image.width
             let height = image.height
-            let GPUOriginImage = GPUAccelerator.Allocate1D<SKIDColor>(image.pixels) 
-            let GPUResultImage = GPUAccelerator.Allocate1D<SKIDColor>(image.pixels.Length)
+            use GPUContext = Context.CreateDefault()
+            use GPUAccelerator = GPUContext.GetPreferredDevice(preferCPU=false).CreateAccelerator(GPUContext)
+            use GPUOriginImage = GPUAccelerator.Allocate1D<SKIDColor>(image.pixels) 
+            use GPUResultImage = GPUAccelerator.Allocate1D<SKIDColor>(image.pixels.Length)
             let kernel (index: Index1D) 
                        (origin: ArrayView1D<SKIDColor, Stride1D.Dense>) 
                        (refColor:SKIDColor) 
@@ -109,10 +106,6 @@ module TextureImageProcessing =
             kernelLauncher.Invoke(GPUResultImage.IntExtent, GPUOriginImage.View, refColor, GPUResultImage.View, constant)
             GPUAccelerator.Synchronize()
             let resultPixels = GPUResultImage.GetAsArray1D()
-            GPUOriginImage.Dispose()
-            GPUResultImage.Dispose()
-            GPUAccelerator.Dispose()
-            GPUContext.Dispose()
             SKIDImage(resultPixels, width, height)
              
 
