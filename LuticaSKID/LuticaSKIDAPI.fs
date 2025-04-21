@@ -4,19 +4,21 @@ open LuticaSKID.SKIDToolFunction
 open System.Runtime.InteropServices
 open System.Collections.Generic
 
-type ImageProcessCommand =
-    | GenerateNormalMap of ImageProcessInput<NormalModule.NormalMapConfig>
-    | GenerateMatcapMap of ImageProcessInput<MatcapModule.MatcapConfig>
-    | GenerateNormalMapFromUV of ImageProcessInput<NormalModule.UVNormalMapMakeConfig>
-    | GenerateAvgTexture of ImageProcessInput<ColorMath.ColorMoodOption>
-    | ProcessImage of ImageProcessInput<Models.TextureImageProcessing.ImageProcessInputOption>
-
 [<ComVisible(true)>]
 type LuticaSKIDAPI () =
-    member this.Process(cmd: ImageProcessCommand) : SKIDImage =
-        match cmd with
-        | GenerateNormalMap(input) -> NormalModule.generateNormalMap input
-        | GenerateMatcapMap(input) -> MatcapModule.generateMatcapMap input
-        | GenerateNormalMapFromUV(input) -> NormalModule.generateNormalMapFromFBX input
-        | GenerateAvgTexture(input) -> ColorMath.applyMoodColor input
-        | ProcessImage(input) -> Models.TextureImageProcessing.Processer.Process input
+   member this.Process(cmd: ImageProcessCommand) : SKIDImage =
+       match cmd with
+       | GenerateNormalMap(input) -> NormalModule.generateNormalMap input
+       | GenerateMatcapMap(input) -> MatcapModule.generateMatcapMap input
+       | GenerateNormalMapFromUV(input) -> NormalModule.generateNormalMapFromFBX input
+       | GenerateAvgTexture(input) -> ColorMath.applyMoodColor input
+       | ProcessImage(input) -> Models.TextureImageProcessing.Processer.Process input
+       | ProcessImageWithPartial(input) -> 
+           let partialImage = input.config.Value.partialImage
+           let config = input.config.Value
+           let processor = Models.TextureImageProcessing.Processer()
+           BoxedZoneEditAdaptor.BoxingProcesser.ExecuteImageAfterPartically 
+               input.image 
+               partialImage 
+               processor
+               config

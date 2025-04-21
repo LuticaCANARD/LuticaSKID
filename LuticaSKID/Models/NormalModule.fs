@@ -128,8 +128,15 @@ module NormalModule =
         let width, height = input.image.width, input.image.height
         let src, result = input.image.pixels, Array.zeroCreate<SKIDColor> (width * height)
         let normals = computeNormalFromUV input.config.Value.UVs input.config.Value.Normals input.config.Value.Triangles
+        for x in 0 .. width - 1 do
+            for y in 0 .. height - 1 do
+                // Calculate normal map color based on normals array
+                let normal = normals.[y * width + x]
+                let r = clampColorComponent ((normal.x * 0.5f) + 0.5f)
+                let g = clampColorComponent ((normal.y * 0.5f) + 0.5f)
+                let b = clampColorComponent ((normal.z * 0.5f) + 0.5f)
+                result.[y * width + x] <- SKIDColor(r, g, b, 1.0f)
 
-        let getPixel x y = src.[y * width + x]
         SKIDImage(result, width, height)
 
     let generateNormalMapFromFBX (input: ImageProcessInput<UVNormalMapMakeConfig>) : SKIDImage =

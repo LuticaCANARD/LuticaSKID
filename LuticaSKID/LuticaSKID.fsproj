@@ -13,19 +13,21 @@
  <Compile Include="Schema\SKIDConstants.fs" />
  <Compile Include="Schema\StructTypes.fs" />
  <Compile Include="Schema\SKIDToolFunction.fs" />
- <Compile Include="Models\TextureImageProcessing.fs" />
+  <Compile Include="Library\BoxedZoneEditAdaptor.fs" />
+  <Compile Include="Models\TextureImageProcessing.fs" />
  <Compile Include="Models\MatcapModule.fs" />
  <Compile Include="Models\NormalModule.fs" />
  <Compile Include="Models\ColorGrammer.fs" />
  <Compile Include="Models\ColorClustring.fs" />
  <Compile Include="Models\ColorMath.fs" />
- <Compile Include="ImagePipeline.fs" />
- <Compile Include="LuticaSKIDAPI.fs" />
+ <Compile Include="Commands\SKIDAPICommands.fs" />
+  <Compile Include="LuticaSKIDAPI.fs" />
+  <Compile Include="Tests\SKIDToolFunctionTests.fs" />
 </ItemGroup>
 
 <ItemGroup>
  <PackageReference Include="ILGPU" Version="1.5.2" />
- <PackageReference Include="System.Reflection.Metadata" Version="1.8.1" />
+ <PackageReference Include="System.Reflection.Metadata" Version="7.0.2" />
 </ItemGroup>
 
 <Target Name="LutiacaL" AfterTargets="Build">
@@ -35,6 +37,7 @@
 
  <ItemGroup>
    <BuiltFiles Include="$(OutputPath)\$(TargetFileName)" />
+   <BuiltFiles Include="$(OutputPath)\System.Reflection.Metadata.dll" />
    <BuiltFiles Include="$(OutputPath)\ILGPU.dll" /> <!-- ILGPU 포함 -->
    <!-- System.Reflection.Metadata 포함 -->
  </ItemGroup>
