@@ -167,4 +167,4 @@ module TextureImageProcessing =
                     
                 else Processer.ProcessImage(pixels, width, height, processOp, option)
             | SingleImageProcess(processOperation) ->
-                raise (NotImplementedException("The specified single image process operation is not implemented."))
+                 failwith "The specified single image process operation is not implemented."
