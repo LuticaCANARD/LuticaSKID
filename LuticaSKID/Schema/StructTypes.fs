@@ -185,14 +185,15 @@ module public StructTypes =
     | ColorMapping = 4
     | None = -1
 
-
-
-
-
-
-
-
-
+    type ImageProcessTwoImage = 
+    | Add = 0
+    | Subtract = 1
+    | Multiply = 2
+    | Divide  = 3
+    | Average = 4
+    | ColorBlend = 5
+    | ColorDifference = 6
+    | TextureReplace = 7 // 텍스쳐 자체를 완벽하게 교체한다.
 
 
 

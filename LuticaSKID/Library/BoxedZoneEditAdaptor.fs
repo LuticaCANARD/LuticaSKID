@@ -20,7 +20,7 @@ module BoxedZoneEditAdaptor =
         zoneSize: SKIDPixelVector2
         center: SKIDPixelVector2
     }
-    type MarkedImageProcess<'t> = SKIDImage * ResizedImage * 't -> SKIDImage
+    type MarkedImageProcess<'t> = SKIDImage * 't * ResizedImage  -> SKIDImage
 
     [<Interface>]
     type ICanParticalImageProcesser<'t> = interface
@@ -45,18 +45,23 @@ module BoxedZoneEditAdaptor =
                 // 원본 이미지와 동일한 해상도일 경우, 원본 이미지를 그대로 반환한다.
                 partSetting.image
             else
-                let width = partSetting.image.width
-                let height = partSetting.image.height
-                let zoneSize = partSetting.zoneSize                
-                // 부착할 이미지의 해상도에 따라 결정한다.
+                //let width = partSetting.image.width
+                //let height = partSetting.image.height
+                //let zoneSize = partSetting.zoneSize                
+                //// 부착할 이미지의 해상도에 따라 결정한다.
 
-                let targetWidth, targetHeight =
-                    match partSetting.stickingType with
-                    | StickingType.OriginStickingSize -> width, height
-                    | StickingType.PreferenceStickingSize -> int zoneSize.x, int zoneSize.y
-                    | _ -> raise (ArgumentException("Invalid sticking type."))
+                //let targetWidth, targetHeight =
+                //    match partSetting.stickingType with
+                //    | StickingType.OriginStickingSize -> width, height
+                //    | StickingType.PreferenceStickingSize -> int zoneSize.x, int zoneSize.y
+                //    | _ -> raise (ArgumentException("Invalid sticking type."))
 
-                resizeImage partSetting.image targetWidth targetHeight                
+                //resizeImage partSetting.image targetWidth targetHeight   
+                partSetting.image
+
+        static member ExecuteImageAfterPartically (originInput:SKIDImage)(partSetting:MarkingImage)(processer:ICanParticalImageProcesser<'t>)(argu:'t): SKIDImage =
+            processer.ProcessingPartically(originInput, argu, BoxingProcesser.generateToBoxedImageStickier partSetting)
+            
 
 
 

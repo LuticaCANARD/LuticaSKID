@@ -100,20 +100,51 @@ module SKIDToolFunction =
             raise (ArgumentException("Target width and height must be positive."))
         let width = size.x
         let height = size.y
-        let x = center.x - (width / 2)
-        let y = center.y - (height / 2)
-        let x = clampInt 0 (originImageSize.x - 1) x
-        let y = clampInt 0 (originImageSize.y - 1) y
-        let width = clampInt 0 (originImageSize.x - 1) (x + width)
-        let height = clampInt 0 (originImageSize.y - 1) (y + height)
-        let newWidth = width - x
-        let newHeight = height - y
-        let newPixels = Array.Parallel.init (newWidth * newHeight) (fun idx ->
-            let i = idx % newWidth
-            let j = idx / newWidth
-            let srcX = x + i
-            let srcY = y + j
-            image.pixels.[srcX + srcY * image.width]
-        )
-        SKIDImage(newPixels, newWidth, newHeight)
-        
+        // TODO : 중심이 이미지의 바깥에 있을 경우에 대한 처리는 사후에 한다.
+        let distantXToBorderPositive = originImageSize.x - center.x 
+        let distantXToBorderNegative = center.x
+        let distantYToBorderPositive = originImageSize.y - center.y
+        let distantYToBorderNegative = center.y
+
+        let getPosition = fun(index:int)-> 
+            let x = index % image.width
+            let y = index / image.width
+            SKIDPixelVector2(x,y)
+
+        let filteringOverBoder = fun (v:SKIDPixelVector2) -> 
+            let x = v.x
+            let y = v.y
+            if x < 0 || x >= image.width || y < 0 || y >= image.height then false else true
+
+        let filteredPixels = 
+            image.pixels 
+            |> Array.mapi (fun index pix -> 
+                let v = getPosition index
+                if filteringOverBoder v then pix else SKIDColor(0.0f, 0.0f, 0.0f, 0.0f))
+            |> Array.Parallel.filter filteringVaildColor
+            |> Array.Parallel.map (fun pix -> 
+                pix 
+                |> fun p -> SKIDColor(clampColorComponent p.r, clampColorComponent p.g, clampColorComponent p.b, clampColorComponent p.a))
+        let newWidth = min width distantXToBorderPositive + distantXToBorderNegative
+        let newHeight = min height distantYToBorderPositive + distantYToBorderNegative    
+
+        SKIDImage(filteredPixels, newWidth, newHeight)
+    let inline generateCroppedImage(image: SKIDImage) (deployPoint: SKIDPixelVector2) (size: SKIDPixelVector2) : SKIDImage =
+
+        let newPixels = Array.init(int (size.x * size.y)) (fun i -> 
+            let x = i % size.x
+            let y = i / size.x
+            let transformedX = deployPoint.x + x 
+            let transformedY = deployPoint.y + y
+
+            if transformedX < 0 || transformedX >= image.width || transformedY < 0 || transformedY >= image.height then
+                SKIDColor(0.0f, 0.0f, 0.0f, 0.0f)
+            else
+                let origin_image_index = transformedX + transformedY * image.width
+                image.pixels.[origin_image_index]
+            )
+
+
+
+        SKIDImage(newPixels, int size.x, int size.y)
+

@@ -10,22 +10,12 @@ open LuticaSKID.BoxedZoneEditAdaptor
 
 module TextureImageProcessing =
     [<ComVisible(true)>]
-    type ImageProcessTwoImage = 
-        | Add = 0
-        | Subtract = 1
-        | Multiply = 2
-        | Divide  = 3
-        | Average = 4
-        | ColorBlend = 5
-        | ColorDifference = 6
-        | TextureReplace = 7 // 텍스쳐 자체를 완벽하게 교체한다.
+
     type ImageProcessTwoImageOption = {
         refrenceImage: SKIDImage
         constant: float32
     }
-    type ProcessingPartiralImageProcesser = {
-        constant: float32
-    }
+
     type SingleImageProcessType =
         | Average 
         | Median 
@@ -41,50 +31,53 @@ module TextureImageProcessing =
         | BackgroundIsBlack = 0         // 검은색 배경
         | BackgroundIsWhite = 1         // 흰색 배경
         | BackegroundIsTranspaint = 2   // 투명한 배경
-    type PartialImageProcessType =
-        {
-            operation:ImageProcessTwoImage
-            options:ProcessingPartiralImageProcesser
-        }
+
     type ImageProcessType = 
         | TwoImageProcess of ImageProcessTwoImage * ImageProcessTwoImageOption
-        | PartialImageProcess of PartialImageProcessType
         | SingleImageProcess of SingleImageProcessType
     type ImageProcessInputOption = {
         processType: ImageProcessType
     }
+    type SimpleImageSynArgu = {
+        processType: ImageProcessTwoImage
+        partialImage: MarkingImage
+        constant: float32
+    }
 
     type Processer() =
-        interface ICanParticalImageProcesser<PartialImageProcessType> with
+        interface ICanParticalImageProcesser<SimpleImageSynArgu> with
             override this.ProcessingPartically
-                with get (): MarkedImageProcess<PartialImageProcessType> = 
-                    fun (image, refImage, option) -> 
+                with get (): MarkedImageProcess<SimpleImageSynArgu> = 
+                    fun (image, option,refImage) -> 
                         let pixels = image.pixels
                         let width = image.width
                         let height = image.height
-                        let processOp = option.operation
+                        let processOp = option.processType
                         if processOp = ImageProcessTwoImage.ColorDifference then
                             let mainColorOnReference = 
                                 refImage.image.pixels
                                 |> Array.Parallel.filter filteringVaildColor
                                 |> Array.average
-                            Processer.ProcessMainColor(image, mainColorOnReference, option.options.constant)
+                            Processer.ProcessMainColor(image, mainColorOnReference, option.constant)
                         else 
                         
                             let cuttedImage:SKIDImage = 
-                                if refImage.center.x + (refImage.zoneSize.x) / 2 > image.width ||
-                                   refImage.center.x - (refImage.zoneSize.x) / 2 < 0 ||
-                                   refImage.center.y + (refImage.zoneSize.y) / 2 > image.height ||
-                                   refImage.center.y - (refImage.zoneSize.y) / 2 < 0 then
-                                    // 부착할 이미지의 해상도에 따라 결정한다.
-                                        cropImage refImage.image refImage.center refImage.zoneSize (SKIDPixelVector2(image.width,image.height))
-                                else refImage.image
+
+                                
+                                //if refImage.center.x + (refImage.zoneSize.x) / 2 > image.width ||
+                                //   refImage.center.x - (refImage.zoneSize.x) / 2 < 0 ||
+                                //   refImage.center.y + (refImage.zoneSize.y) / 2 > image.height ||
+                                //   refImage.center.y - (refImage.zoneSize.y) / 2 < 0 then
+                                //    // 부착할 이미지의 해상도에 따라 결정한다.
+                                //        cropImage refImage.image refImage.center refImage.zoneSize (SKIDPixelVector2(image.width,image.height))
+                                //else 
+                                generateCroppedImage refImage.image (refImage.center* -1) (SKIDPixelVector2(image.width,image.height))
                                     
 
                             let newOption = 
                                 {
                                     refrenceImage = cuttedImage
-                                    constant = option.options.constant
+                                    constant = option.constant
                                 }
                             Processer.ProcessImage(pixels, width, height, processOp, newOption)
                        
@@ -175,5 +168,3 @@ module TextureImageProcessing =
                 else Processer.ProcessImage(pixels, width, height, processOp, option)
             | SingleImageProcess(processOperation) ->
                 raise (NotImplementedException("The specified single image process operation is not implemented."))
-            | PartialImageProcess(option) ->
-                raise (NotImplementedException("The specified partial image process operation is not implemented."))
