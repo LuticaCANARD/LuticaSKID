@@ -12,5 +12,5 @@ type ImageProcessCommand =
     | ProcessImageWithPartial of ImageProcessInput<Models.TextureImageProcessing.SimpleImageSynArgu>
 
 type ImageAnalyzeCommand =
-    | AnalyzeColorGroup of ImageProcessInput
+    | AnalyzeColorGroup of ImageProcessInput<Models.ColorGroupingModel.KmeansSetting>
 

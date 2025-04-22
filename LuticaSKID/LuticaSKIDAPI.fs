@@ -26,7 +26,7 @@ type LuticaSKIDAPI () =
     member this.AnalyzingColorImage(cmd:ImageAnalyzeCommand) : AnalyzeResult<_> =
         match cmd with
             | AnalyzeColorGroup(input) -> 
-                Models.ColorGroupingModel.Process.ExecuteKmeans input.image
+                Models.ColorGroupingModel.Process.ExecuteKmeans input.image input.config.Value.maxK
 
 
 

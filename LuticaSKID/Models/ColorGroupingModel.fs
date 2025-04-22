@@ -18,7 +18,7 @@ module ColorGroupingModel =
         colorCount: int
     }
     type ColorGroupiongAnlyzeResult = AnalyzeResult<ColorGroupingResult>
-
+    type KmeansSetting = {maxK:int}
     type Process() =
         static member computeInertia (assignments: int[]) (centroids: SKIDColor[]) (image: SKIDImage) =
             assignments
@@ -30,30 +30,6 @@ module ColorGroupingModel =
                 let db = p.b - c.b
                 dr * dr + dg * dg + db * db)
             |> Array.sum
-                    
-        static member findBestK (image:SKIDImage) (maxK:int):ColorGroupiongAnlyzeResult =
-            let inertias = ResizeArray()
-            let results = ResizeArray()
-            let mutable bestK:ColorGroupiongAnlyzeResult = {
-                result = { colorResult = []; colorCount = 0 }
-            }
-            for k in 1 .. maxK do
-                let result = Process.ExecuteKmeans image
-                let assignments = result.result.colorResult |> Array.ofList |> Array.Parallel.map(fun a->a.colorElement) 
-                let centroids = 
-                    assignments 
-                    |> Array.distinct
-                    |> Array.distinctBy id
-                let inertia = Process.computeInertia (assignments |> Array.Parallel.mapi (fun i c -> Array.findIndex ((=) c) centroids)) centroids image
-                inertias.Add(inertia)
-                results.Add((k, result, inertia))
-                if inertias.Count > 2 then
-                    let last = inertias.[inertias.Count - 1]
-                    let prev = inertias.[inertias.Count - 2]
-                    if (prev - last) / prev < 0.05f then // inertia 감소폭이 5% 미만이면 종료
-                        bestK  <- results |> Seq.minBy (fun (k, r, inertia) ->  k + int(inertia * 0.001f)) |> (fun (_, r, _) -> r)
-            bestK
-
                         
             
         static member kmeansKernel (tid:Index1D) 
@@ -82,13 +58,11 @@ module ColorGroupingModel =
 
                     assignments.[tid] <- best
             
-        static member ExecuteKmeans (image:SKIDImage) : ColorGroupiongAnlyzeResult =
+        static member ExecuteKmeans (image:SKIDImage)(maxK:int) : ColorGroupiongAnlyzeResult =
             use context = Context.CreateDefault()
             use accelerator = context.GetPreferredDevice(preferCPU=false).CreateAccelerator(context)
 
             let kernel = accelerator.LoadAutoGroupedStreamKernel<Index1D,ArrayView<SKIDColor>,ArrayView<SKIDColor>,ArrayView<int>,int,int> Process.kmeansKernel
-
-            let maxK = 10
             let pixelLength = image.pixels.Length
 
             let mutable bestResult = Unchecked.defaultof<_>
