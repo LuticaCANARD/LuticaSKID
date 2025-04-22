@@ -187,6 +187,7 @@ module public StructTypes =
     [<Class>]
     type ImageProcessInput = 
         val image: SKIDImage
+        new (image:SKIDImage) = { image = image }
     type ImageProcessingOrder = 
     | NormalMap = 0
     | MatcapMap = 1

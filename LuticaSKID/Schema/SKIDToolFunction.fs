@@ -145,8 +145,55 @@ module SKIDToolFunction =
                 let origin_image_index = transformedX + transformedY * image.width
                 image.pixels.[origin_image_index]
             )
-
-
-
         SKIDImage(newPixels, int size.x, int size.y)
 
+    let inline rotateImage (originImage:SKIDImage)(angle:float32) : SKIDImage =
+        if originImage.pixels.Length = 0 then
+                raise (ArgumentException("The input image pixels cannot be empty."))
+        else
+            let radians = float (angle) * Math.PI / 180.0
+            let cosTheta = float32 (Math.Cos(radians))
+            let sinTheta = float32 (Math.Sin(radians))
+
+            let centerX = originImage.width / 2
+            let centerY = originImage.height / 2
+
+            let mutable minX, minY = Int32.MaxValue, Int32.MaxValue
+            let mutable maxX, maxY = Int32.MinValue, Int32.MinValue
+
+            // Calculate new bounds
+            for y in 0 .. originImage.height - 1 do
+                for x in 0 .. originImage.width - 1 do
+                    let translatedX = float32 (x - centerX)
+                    let translatedY = float32 (y - centerY)
+
+                    let rotatedX = cosTheta * translatedX - sinTheta * translatedY
+                    let rotatedY = sinTheta * translatedX + cosTheta * translatedY
+
+                    let newX = int (rotatedX + float32 centerX)
+                    let newY = int (rotatedY + float32 centerY)
+
+                    minX <- min minX newX
+                    minY <- min minY newY
+                    maxX <- max maxX newX
+                    maxY <- max maxY newY
+
+            let newWidth = maxX - minX + 1
+            let newHeight = maxY - minY + 1
+            // Rotate and map pixels to new bounds
+            let rotatedPixels = Array.Parallel.init (newWidth * newHeight) (fun i -> 
+                let x = i % newWidth
+                let y = i / newWidth
+                let translatedX = float32 (x + minX - centerX)
+                let translatedY = float32 (y + minY - centerY)
+                let rotatedX = cosTheta * translatedX - sinTheta * translatedY
+                let rotatedY = sinTheta * translatedX + cosTheta * translatedY
+
+                let newX = int (rotatedX + float32 centerX)
+                let newY = int (rotatedY + float32 centerY)
+                if newX >= 0 && newX < originImage.width && newY >= 0 && newY < originImage.height then
+                    originImage.pixels.[newY * originImage.width + newX]
+                else
+                    SKIDColor(0.0f, 0.0f, 0.0f, 0.0f) // Transparent color for out-of-bounds pixels
+            )
+            SKIDImage(rotatedPixels, newWidth, newHeight)
