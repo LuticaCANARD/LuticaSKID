@@ -130,12 +130,14 @@ module SKIDToolFunction =
 
         SKIDImage(filteredPixels, newWidth, newHeight)
     let inline generateCroppedImage(image: SKIDImage) (deployPoint: SKIDPixelVector2) (size: SKIDPixelVector2) : SKIDImage =
-
+    // 새 이미지에 맞는 기존 이미지의 마스크를 생성함.
         let newPixels = Array.init(int (size.x * size.y)) (fun i -> 
+
+            // Calculate the x and y coordinates in the new image
             let x = i % size.x
             let y = i / size.x
-            let transformedX = deployPoint.x + x 
-            let transformedY = deployPoint.y + y
+            let transformedX = deployPoint.x + x + image.width/2
+            let transformedY = deployPoint.y + y + image.height/2
 
             if transformedX < 0 || transformedX >= image.width || transformedY < 0 || transformedY >= image.height then
                 SKIDColor(0.0f, 0.0f, 0.0f, 0.0f)

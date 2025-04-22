@@ -168,6 +168,14 @@ module public StructTypes =
         val height: int
         new(pixels: SKIDColor[], width: int, height: int) =
             { pixels = pixels; width = width; height = height }
+        member inline public this.GetPixelIndex(x: int, y: int) =
+            if x < 0 || y < 0 || x >= this.width || y >= this.height then
+                raise (ArgumentOutOfRangeException("Index out of bounds"))
+            y * this.width + x
+        member public this.GetPixel(x: int, y: int) =
+            if x < 0 || y < 0 || x >= this.width || y >= this.height then
+                raise (ArgumentOutOfRangeException("Index out of bounds"))
+            this.pixels.[y * this.width + x]
 
 
     [<Class>]
