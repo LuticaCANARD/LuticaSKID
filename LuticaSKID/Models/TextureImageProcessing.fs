@@ -62,15 +62,6 @@ module TextureImageProcessing =
                         else 
                         
                             let cuttedImage:SKIDImage = 
-
-                                
-                                //if refImage.center.x + (refImage.zoneSize.x) / 2 > image.width ||
-                                //   refImage.center.x - (refImage.zoneSize.x) / 2 < 0 ||
-                                //   refImage.center.y + (refImage.zoneSize.y) / 2 > image.height ||
-                                //   refImage.center.y - (refImage.zoneSize.y) / 2 < 0 then
-                                //    // 부착할 이미지의 해상도에 따라 결정한다.
-                                //        cropImage refImage.image refImage.center refImage.zoneSize (SKIDPixelVector2(image.width,image.height))
-                                //else 
                                 generateCroppedImage refImage.image (refImage.center* -1) (SKIDPixelVector2(image.width,image.height))
                                     
 

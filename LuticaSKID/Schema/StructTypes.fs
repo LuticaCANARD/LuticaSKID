@@ -176,7 +176,9 @@ module public StructTypes =
         val config: 'TSetting option
         new (image:SKIDImage, config: 'TSetting option) = { image = image; config = config }
         new (image:SKIDImage) = { image = image; config = None}
-    
+    [<Class>]
+    type ImageProcessInput = 
+        val image: SKIDImage
     type ImageProcessingOrder = 
     | NormalMap = 0
     | MatcapMap = 1
@@ -197,4 +199,6 @@ module public StructTypes =
 
 
 
-   
+    type AnalyzeResult<'T>={
+        result: 'T
+    }   

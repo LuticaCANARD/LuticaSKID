@@ -10,3 +10,7 @@ type ImageProcessCommand =
     | GenerateAvgTexture of ImageProcessInput<ColorMath.ColorMoodOption>
     | ProcessImage of ImageProcessInput<Models.TextureImageProcessing.ImageProcessInputOption>
     | ProcessImageWithPartial of ImageProcessInput<Models.TextureImageProcessing.SimpleImageSynArgu>
+
+type ImageAnalyzeCommand =
+    | AnalyzeColorGroup of ImageProcessInput
+

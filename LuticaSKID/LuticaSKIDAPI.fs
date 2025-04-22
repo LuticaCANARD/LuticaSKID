@@ -3,6 +3,7 @@ open LuticaSKID.StructTypes
 open LuticaSKID.SKIDToolFunction
 open System.Runtime.InteropServices
 open System.Collections.Generic
+    
 
 [<ComVisible(true)>]
 type LuticaSKIDAPI () =
@@ -22,3 +23,9 @@ type LuticaSKIDAPI () =
                partialImage 
                processor
                config
+    member this.AnalyzingColorImage(cmd:ImageAnalyzeCommand) : AnalyzeResult<_> =
+        match cmd with
+            | AnalyzeColorGroup(input) -> 
+                Models.ColorGroupingModel.Process.ExecuteKmeans input.image
+
+                
