@@ -18,20 +18,32 @@ module ColorGroupingModel =
         colorCount: int
     }
     type ColorGroupiongAnlyzeResult = AnalyzeResult<ColorGroupingResult>
-    type KmeansSetting = {maxK:int}
+    type KmeansSetting = {maxK:int;maxIter:int}
     type Process() =
         static member computeInertia (assignments: int[]) (centroids: SKIDColor[]) (image: SKIDImage) =
             assignments
             |> Array.mapi (fun i cid ->
                 let p = image.pixels.[i]
                 let c = centroids.[cid]
-                let dr = p.r- c.r
+                let dr = p.r - c.r
                 let dg = p.g - c.g
                 let db = p.b - c.b
                 dr * dr + dg * dg + db * db)
             |> Array.sum
-                        
-            
+
+        static member calculateCentroidSums k hostAssignments pixels =
+            Array.init k (fun _ -> (0.0f, 0.0f, 0.0f, 0))
+            |> fun tmp ->
+                Array.zip hostAssignments pixels
+                |> Array.groupBy fst
+                |> Array.iter (fun (clusterIndex, clusterPixels) ->
+                    let rSum = clusterPixels |> Array.sumBy (fun (_, p:SKIDColor) -> float p.r)
+                    let gSum = clusterPixels |> Array.sumBy (fun (_, p) -> float p.g)
+                    let bSum = clusterPixels |> Array.sumBy (fun (_, p) -> float p.b)
+                    let count = clusterPixels.Length
+                    tmp.[clusterIndex] <- (float32 rSum, float32 gSum, float32 bSum, count)
+                )
+                tmp
         static member kmeansKernel (tid:Index1D) 
             (pixels:ArrayView<SKIDColor>) 
             (centroids:ArrayView<SKIDColor>) 
@@ -58,7 +70,7 @@ module ColorGroupingModel =
 
                     assignments.[tid] <- best
             
-        static member ExecuteKmeans (image:SKIDImage)(maxK:int) : ColorGroupiongAnlyzeResult =
+        static member ExecuteKmeans (image:SKIDImage)(maxK:int)(maxTry:int) : ColorGroupiongAnlyzeResult =
             use context = Context.CreateDefault()
             use accelerator = context.GetPreferredDevice(preferCPU=false).CreateAccelerator(context)
 
@@ -77,24 +89,24 @@ module ColorGroupingModel =
                     use d_originImage = accelerator.Allocate1D<SKIDColor>(image.pixels)
                     use d_assignments = accelerator.Allocate1D<int>(assignments.Length)
 
-                    for _ in 0 .. 9 do
+                    for _ in 0 .. maxTry do
                         kernel.Invoke(d_originImage.IntExtent, d_originImage.View, d_centroids.View, d_assignments.View, k, pixelLength)
                         accelerator.Synchronize()
 
                         let hostAssignments = d_assignments.GetAsArray1D()
 
                         // centroids 업데이트
-                        let centroidSums = Array.init k (fun _ -> (0.0f, 0.0f, 0.0f, 0))
-                        for j in 0 .. pixelLength - 1 do
-                            let clusterIndex = hostAssignments.[j]
-                            let p = image.pixels.[j]
-                            let (rSum, gSum, bSum, count) = centroidSums.[clusterIndex]
-                            centroidSums.[clusterIndex] <- (rSum + p.r, gSum + p.g, bSum + p.b, count + 1)
 
-                        for i in 0 .. k - 1 do
+                        let centroidSums = Process.calculateCentroidSums k hostAssignments image.pixels
+
+                        let centroids = Array.Parallel.init k (fun i ->
                             let (rSum, gSum, bSum, count) = centroidSums.[i]
                             if count > 0 then
-                                centroids.[i] <- SKIDColor(rSum / float32 count, gSum / float32 count, bSum / float32 count, 1.0f)
+                                SKIDColor(rSum / float32 count, gSum / float32 count, bSum / float32 count, 1.0f)
+                            else
+                                SKIDColor(0.0f, 0.0f, 0.0f, 1.0f)
+                        )
+                        
 
                         d_centroids.CopyFromCPU(centroids)
 
