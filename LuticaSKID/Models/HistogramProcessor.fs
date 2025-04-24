@@ -19,5 +19,7 @@ module HistogramProcessor =
                 let index = ir * 256 + ig * 256 + ib
                 // Increment the histogram count for this color
                 Atomic.Add(&histogram.[index], 1) |> ignore
+        
+          
 
 

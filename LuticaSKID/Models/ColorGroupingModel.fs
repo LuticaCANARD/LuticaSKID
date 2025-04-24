@@ -89,6 +89,9 @@ module ColorGroupingModel =
                 let mutable previousInertia = Single.MaxValue
                 let mutable bestK = 2
                 let mutable diff = Single.MaxValue
+                // K = 현재의 색상군집 갯수이다.
+                // MaxK = 최대 색상군집 갯수이다.
+                
                 for k in 2 .. maxK do
                     if diff > 0.05f then
                         let centroids = Array.init k (fun _ -> SKIDColor(0.0f, 0.0f, 0.0f, 1.0f))
@@ -96,18 +99,17 @@ module ColorGroupingModel =
                         use d_centroids = accelerator.Allocate1D<SKIDColor>(centroids)
                         use d_originImage = accelerator.Allocate1D<SKIDColor>(image.pixels)
                         use d_assignments = accelerator.Allocate1D<int>(assignments.Length)
-
+                        // centroids = 초기화된 색상군집이다.
+                        // 이 로직부분은 색상군집을 계산해 누적해가는 부분이다.
+                        // MaxTry = 최대 반복 횟수이다.
                         for _ in 0 .. maxTry do
                             kernel.Invoke(d_originImage.IntExtent, d_originImage.View, d_centroids.View, d_assignments.View, k, pixelLength)
                             accelerator.Synchronize()
-
                             let hostAssignments = d_assignments.GetAsArray1D()
 
+                            // 사진에서 centroids를 추출하여 업데이트.
                             // centroids 업데이트
-
                             let centroidSums = Process.calculateCentroidSums k hostAssignments image.pixels
-
-                            
                             let centroids = Array.Parallel.init k (fun i ->
                                 let (rSum, gSum, bSum, count) = centroidSums.[i]
                                 if count > 0 then
@@ -115,11 +117,7 @@ module ColorGroupingModel =
                                 else
                                     SKIDColor(0.0f, 0.0f, 0.0f, 1.0f)
                             )
-                        
-
                             d_centroids.CopyFromCPU(centroids)
-
-
                         let finalCentroids = d_centroids.GetAsArray1D()
                         let finalAssignments = d_assignments.GetAsArray1D()
 
