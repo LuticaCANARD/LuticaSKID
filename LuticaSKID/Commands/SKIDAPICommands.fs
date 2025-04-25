@@ -10,7 +10,9 @@ type ImageProcessCommand =
     | GenerateAvgTexture of ImageProcessInput<ColorMath.ColorMoodOption>
     | ProcessImage of ImageProcessInput<Models.TextureImageProcessing.ImageProcessInputOption>
     | ProcessImageWithPartial of ImageProcessInput<Models.TextureImageProcessing.SimpleImageSynArgu>
+    | ProcessHistogramEqualize of ImageProcessInput<Models.HistogramProcessor.histogramAnalyzeOption>
 
 type ImageAnalyzeCommand =
     | AnalyzeColorGroup of ImageProcessInput<Models.ColorGroupingModel.KmeansSetting>
+    | AnalyzeHistogram of ImageProcessInput<Models.HistogramProcessor.histogramAnalyzeOption>
 

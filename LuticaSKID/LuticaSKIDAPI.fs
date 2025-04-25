@@ -5,6 +5,11 @@ open System.Runtime.InteropServices
 open System.Collections.Generic
     
 
+
+type AnalyzeResultTypes =     
+    | ColorGroupingResult of Models.ColorGroupingModel.ColorGroupiongAnlyzeResult
+    | HistogramResult of Models.HistogramProcessor.histogramAnalyzeResult
+
 [<ComVisible(true)>]
 type LuticaSKIDAPI () =
    member this.Process(cmd: ImageProcessCommand) : SKIDImage =
@@ -23,11 +28,15 @@ type LuticaSKIDAPI () =
                partialImage 
                processor
                config
-    member this.AnalyzingColorImage(cmd:ImageAnalyzeCommand) : AnalyzeResult<_> =
+       | ProcessHistogramEqualize(input) -> 
+              let histogram = Models.HistogramProcessor.Process.makeHistogram input.image input.config.Value
+              Models.HistogramProcessor.Process.imageHistogramEqualize input.image histogram.result
+
+    member this.AnalyzingColorImage(cmd:ImageAnalyzeCommand) : AnalyzeResultTypes =
         match cmd with
             | AnalyzeColorGroup(input) -> 
-                Models.ColorGroupingModel.Process.ExecuteKmeans input.image input.config.Value.maxK input.config.Value.maxIter
-
-
-
-                
+                Models.ColorGroupingModel.Process.ExecuteKmeans input.image input.config.Value.maxK input.config.Value.maxIter 
+                    |> AnalyzeResultTypes.ColorGroupingResult 
+            | AnalyzeHistogram(input) -> 
+                Models.HistogramProcessor.Process.makeHistogram input.image input.config.Value 
+                    |> AnalyzeResultTypes.HistogramResult
