@@ -197,3 +197,13 @@ module SKIDToolFunction =
                     SKIDColor(0.0f, 0.0f, 0.0f, 0.0f) // Transparent color for out-of-bounds pixels
             )
             SKIDImage(rotatedPixels, newWidth, newHeight)
+
+    let inline maskingImage (image: SKIDImage) (mask: SKIDImage) : SKIDImage =
+        if image.width <> mask.width || image.height <> mask.height then
+            raise (ArgumentException("The input image and mask must have the same dimensions."))
+        let maskedPixels = Array.Parallel.init (image.pixels.Length) (fun i ->
+            let imgPixel = image.pixels.[i]
+            let maskPixel = mask.pixels.[i]
+            if maskPixel.a > 0.0f then imgPixel else SKIDColor(0.0f, 0.0f, 0.0f, 0.0f)
+        )
+        SKIDImage(maskedPixels, image.width, image.height)

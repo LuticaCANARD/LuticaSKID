@@ -43,7 +43,8 @@ module HistogramProcessor =
             let originLevel = float32 options.originLevel
             use context = Context.CreateDefault()
             use accelerator = context.GetPreferredDevice(preferCPU=false).CreateAccelerator(context)
-            use memory = accelerator.Allocate1D<SKIDColor>(image.pixels)
+            let targetImg = if options.mask.IsSome then maskingImage image options.mask.Value else image
+            use memory = accelerator.Allocate1D<SKIDColor>(targetImg.pixels)
             use histogramBuffer = accelerator.Allocate1D<int>(histogram)
             let kernel = accelerator.LoadAutoGroupedStreamKernel<Index1D,ArrayView<SKIDColor>,ArrayView<int>,int,int,int,float32>(Process.histogramKernel)
             let whiteInt = if doNotCountWhitePixel then 1 else 0
