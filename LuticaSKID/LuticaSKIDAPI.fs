@@ -3,15 +3,18 @@ open LuticaSKID.StructTypes
 open LuticaSKID.SKIDToolFunction
 open System.Runtime.InteropServices
 open System.Collections.Generic
-    
-
+open ILGPU
+open ILGPU.Runtime
 
 type AnalyzeResultTypes =     
     | ColorGroupingResult of Models.ColorGroupingModel.ColorGroupiongAnlyzeResult
     | HistogramResult of Models.HistogramProcessor.histogramAnalyzeResult
 
+
 [<ComVisible(true)>]
 type LuticaSKIDAPI () =
+   //member this.ilgpuContext = Context.CreateDefault()
+   //
    member this.Process(cmd: ImageProcessCommand) : SKIDImage =
        match cmd with
        | GenerateNormalMap(input) -> NormalModule.generateNormalMap input

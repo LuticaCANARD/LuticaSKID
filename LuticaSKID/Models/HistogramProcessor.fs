@@ -14,49 +14,58 @@ module HistogramProcessor =
         histogramSize: int
         doNotCountWhitePixel: bool
         originLevel:int
-        mask: SKIDImage option
+        mask: SKIDImage option // 변경: null 대신 F#의 Option 타입 사용
     }
     /// <summary>
     type Process()=
+        static member makeHistogram (image:SKIDImage) (options:histogramAnalyzeOption):histogramAnalyzeResult = 
+            use context = Context.CreateDefault()
+            use accelerator = context.GetPreferredDevice(preferCPU=false).CreateAccelerator(context)
+            let histogramSize = options.histogramSize
+            let doNotCountWhitePixel = options.doNotCountWhitePixel
+            let pixelCount = image.pixels.Length
+            let histogram = Array.create (histogramSize*histogramSize*histogramSize) 0
+            let originLevel = options.originLevel
+            let targetImg = if options.mask.IsNone then image else maskingImage image options.mask.Value
+            try
+                let memory = accelerator.Allocate1D<SKIDColor>(targetImg.pixels)
+                let histogramBuffer = accelerator.Allocate1D<int>(histogram)
+                let kernel = accelerator.LoadAutoGroupedStreamKernel<Index1D,ArrayView<SKIDColor>,ArrayView<int>,int,int,int,int>(Process.histogramKernel)
+                let whiteInt = if doNotCountWhitePixel then 1 else 0
+                kernel.Invoke(memory.IntExtent, memory.View, histogramBuffer.View, pixelCount,whiteInt,histogramSize-1,originLevel)
+                accelerator.Synchronize()
+                {result={histogram=histogramBuffer.GetAsArray1D();pixelCount=pixelCount;};}
+            with
+            | ex ->
+                // Log or handle the exception as needed
+                printfn "Exception occurred: %s" ex.Message
+                raise ex
+           
+            
+            
         static member histogramKernel (tid:Index1D) 
             (pixels:ArrayView<SKIDColor>) (histogram:ArrayView<int>) 
-            (pixelCount:int)(doNotCountWhitePixel: int)(hlevel:int)(originLevel:float32) =
+            (pixelCount:int)(doNotCountWhitePixel: int)(hlevel:int)(originLevel:int) =
+            // tid 인덱스가 유효한 픽셀 범위 내에 있는지 확인
             if tid.X < pixelCount then
                 let px = tid.X
                 let r = pixels.[px].r
                 let g = pixels.[px].g
                 let b = pixels.[px].b
-                let ir = int (r * 255.0f)
-                let ig = int (g * 255.0f)
-                let ib = int (b * 255.0f)
-                // Calculate the index for the histogram
+
+                // 4. 스케일링 및 클램핑 적용 (hlevel 기준)
+                // float32 값([0.0, 1.0] 가정)을 [0, hlevel-1] 범위의 정수로 변환
+                let ir = (int (r * float32 hlevel))
+                let ig = (int (g * float32 hlevel))
+                let ib = (int (b * float32 hlevel))
                 let index = ir * hlevel * hlevel + ig * hlevel + ib
-                // Increment the histogram count for this color
                 Atomic.Add(&histogram.[index], 1) |> ignore
+                        
+                           
+                
+                   
 
-        static member makeHistogram (image:SKIDImage) (options:histogramAnalyzeOption):histogramAnalyzeResult = 
-            let histogramSize = options.histogramSize
-            let doNotCountWhitePixel = options.doNotCountWhitePixel
-            let pixelCount = image.pixels.Length
-            let histogram = Array.create (histogramSize*histogramSize*histogramSize) 0
-            let level = options.histogramSize
-            let originLevel = float32 options.originLevel
-            use context = Context.CreateDefault()
-            use accelerator = context.GetPreferredDevice(preferCPU=false).CreateAccelerator(context)
-            let targetImg = if options.mask.IsSome then maskingImage image options.mask.Value else image
-            use memory = accelerator.Allocate1D<SKIDColor>(targetImg.pixels)
-            use histogramBuffer = accelerator.Allocate1D<int>(histogram)
-            let kernel = accelerator.LoadAutoGroupedStreamKernel<Index1D,ArrayView<SKIDColor>,ArrayView<int>,int,int,int,float32>(Process.histogramKernel)
-            let whiteInt = if doNotCountWhitePixel then 1 else 0
-            kernel.Invoke(memory.IntExtent, memory.View, histogramBuffer.View, pixelCount,whiteInt,level,originLevel)
-            accelerator.Synchronize()
 
-            {
-                result={
-                    histogram=histogramBuffer.GetAsArray1D();
-                    pixelCount=pixelCount;
-                };
-            }
         static member imageHistogramEqualize(origin:SKIDImage)(histogram:HistogramResult):SKIDImage = 
             let histogramSize = histogram.histogram.Length
             let pixelCount = histogram.pixelCount
@@ -92,9 +101,3 @@ module HistogramProcessor =
                 origin.width,
                 origin.height
             )
-
-
-
-          
-
-

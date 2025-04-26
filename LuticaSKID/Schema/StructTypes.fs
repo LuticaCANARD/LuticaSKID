@@ -208,6 +208,7 @@ module public StructTypes =
 
 
 
+
     type AnalyzeResult<'T>={
         result: 'T
     }   
