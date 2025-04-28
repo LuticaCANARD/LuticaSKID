@@ -11,6 +11,7 @@ type ImageProcessCommand =
     | ProcessImage of ImageProcessInput<Models.TextureImageProcessing.ImageProcessInputOption>
     | ProcessImageWithPartial of ImageProcessInput<Models.TextureImageProcessing.SimpleImageSynArgu>
     | ProcessHistogramEqualize of ImageProcessInput<Models.HistogramProcessor.histogramAnalyzeOption>
+    | ProcessToHeightMap of ImageProcessInput<Models.HeightMapModel.HeightMapConfig>
 
 type ImageAnalyzeCommand =
     | AnalyzeColorGroup of ImageProcessInput<Models.ColorGroupingModel.KmeansSetting>

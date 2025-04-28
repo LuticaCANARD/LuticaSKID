@@ -34,6 +34,8 @@ type LuticaSKIDAPI () =
        | ProcessHistogramEqualize(input) -> 
               let histogram = Models.HistogramProcessor.Process.makeHistogram input.image input.config.Value
               Models.HistogramProcessor.Process.imageHistogramEqualize input.image histogram.result
+       | ProcessToHeightMap(input) -> 
+              Models.HeightMapModel.generateHeightMap input
 
     member this.AnalyzingColorImage(cmd:ImageAnalyzeCommand) : AnalyzeResultTypes =
         match cmd with

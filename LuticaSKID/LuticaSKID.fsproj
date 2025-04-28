@@ -15,6 +15,7 @@
  <Compile Include="Schema\SKIDToolFunction.fs" />
   <Compile Include="Library\BoxedZoneEditAdaptor.fs" />
   <Compile Include="Library\ILGPUFunctionAdaptor.fs" />
+  <Compile Include="Models\HeightMapModel.fs" />
   <Compile Include="Models\HistogramProcessor.fs" />
   <Compile Include="Models\ColorGroupingModel.fs" />
   <Compile Include="Models\TextureImageProcessing.fs" />
