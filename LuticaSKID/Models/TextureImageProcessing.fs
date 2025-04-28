@@ -17,15 +17,14 @@ module TextureImageProcessing =
     }
 
     type SingleImageProcessType =
-        | Average 
-        | Median 
-        | GaussianBlur 
-        | BoxBlur 
-        | MotionBlur 
-        | Sharpen 
-        | EdgeDetection
-        | Invert
-        | ReplaceSpecialColorZoneToTranspaintColor
+        | Median = 1
+        | GaussianBlur = 2 
+        | BoxBlur = 3
+        | MotionBlur = 4
+        | Sharpen = 5
+        | EdgeDetection =6
+        | Invert = 7
+        | ReplaceSpecialColorZoneToTranspaintColor = 8
 
     type ReplaceDetectType = 
         | BackgroundIsBlack = 0         // 검은색 배경
@@ -37,6 +36,7 @@ module TextureImageProcessing =
         | SingleImageProcess of SingleImageProcessType
     type ImageProcessInputOption = {
         processType: ImageProcessType
+        constant: float32
     }
     type SimpleImageSynArgu = {
         processType: ImageProcessTwoImage
@@ -62,26 +62,9 @@ module TextureImageProcessing =
                         else 
                         
                             let cuttedImage:SKIDImage = 
-
-                                
-                                //if refImage.center.x + (refImage.zoneSize.x) / 2 > image.width ||
-                                //   refImage.center.x - (refImage.zoneSize.x) / 2 < 0 ||
-                                //   refImage.center.y + (refImage.zoneSize.y) / 2 > image.height ||
-                                //   refImage.center.y - (refImage.zoneSize.y) / 2 < 0 then
-                                //    // 부착할 이미지의 해상도에 따라 결정한다.
-                                //        cropImage refImage.image refImage.center refImage.zoneSize (SKIDPixelVector2(image.width,image.height))
-                                //else 
                                 generateCroppedImage refImage.image (refImage.center* -1) (SKIDPixelVector2(image.width,image.height))
-                                    
-
-                            let newOption = 
-                                {
-                                    refrenceImage = cuttedImage
-                                    constant = option.constant
-                                }
+                            let newOption = {refrenceImage = cuttedImage;constant = option.constant;}
                             Processer.ProcessImage(pixels, width, height, processOp, newOption)
-                       
-                
         end
             
         
@@ -89,7 +72,8 @@ module TextureImageProcessing =
             if pixels.Length = 0 then
                 raise (ArgumentException("The input image pixels cannot be empty."))
             
-            let resizedImage = if option.refrenceImage.width <> width || option.refrenceImage.height <> height then resizeImage option.refrenceImage width height else option.refrenceImage
+            let resizedImage = if option.refrenceImage.width <> width || option.refrenceImage.height <> height then resizeImage option.refrenceImage width height 
+                                else option.refrenceImage
             // using....
             use GPUContext = Context.CreateDefault()
             use GPUAccelerator = GPUContext.GetPreferredDevice(preferCPU=false).CreateAccelerator(GPUContext)
@@ -102,20 +86,20 @@ module TextureImageProcessing =
                        (origin: ArrayView1D<SKIDColor, Stride1D.Dense>) 
                        (reference: ArrayView1D<SKIDColor, Stride1D.Dense>) 
                        (result: ArrayView1D<SKIDColor, Stride1D.Dense> )
-                       (constant: float32) 
+                       (constant_: float32) 
                        (processOp: int) // Changed to int to avoid unsupported FSharpFunc
                        (minval: float32) =
                 let processing (a: SKIDColor) (b: SKIDColor) =
                     match processOp with
-                    | 0 -> a + b * constant
-                    | 1 -> a - b * constant
-                    | 2 -> a * b * constant
-                    | 3 -> a / (b + minval) * constant
-                    | 4 -> (a + b) / 2.0f * constant
-                    | 5-> if b.a <= 0.0f then a else generateNoneAlphaColor (a + b * constant)
-                    | 6 -> if b.a <= 0.0f then a else generateNoneAlphaColor (a - b * constant)
-                    | 7 -> if b.a <= 0.0f then a else generateNoneAlphaColor (b * constant)
-                    | _ -> a + b * constant
+                    | 0 -> a + b * constant_
+                    | 1 -> a - b * constant_
+                    | 2 -> a * b * constant_
+                    | 3 -> a / (b + minval) * constant_
+                    | 4 -> (a + b) / 2.0f * constant_
+                    | 5 -> if b.a <= 0.0f then a else generateNoneAlphaColor (a + b * constant_)
+                    | 6 -> if b.a <= 0.0f then a else generateNoneAlphaColor (a - b * constant_)
+                    | 7 -> if b.a <= 0.0f then a else generateNoneAlphaColor (b * constant_)
+                    | _ -> a + b * constant_
                 result.[index] <- processing origin.[index] reference.[index]
             let kernelLauncher = GPUAccelerator.LoadAutoGroupedStreamKernel<Index1D, ArrayView1D<SKIDColor, Stride1D.Dense>, ArrayView1D<SKIDColor, Stride1D.Dense>, ArrayView1D<SKIDColor, Stride1D.Dense>, float32,int,float32> (kernel)
             kernelLauncher.Invoke(GPUResultImage.IntExtent, GPUOriginImage.View, GPUReferenceImage.View, GPUResultImage.View, option.constant, int opcode, 1e-5f)
@@ -134,11 +118,11 @@ module TextureImageProcessing =
                        (origin: ArrayView1D<SKIDColor, Stride1D.Dense>) 
                        (refColor:SKIDColor) 
                        (result: ArrayView1D<SKIDColor, Stride1D.Dense> )
-                       (constant: float32) =
+                       (constant_: float32) =
                        result[index] <- SKIDColor(
-                              (origin.[index].r + refColor.r * constant),
-                              (origin.[index].g + refColor.g * constant),
-                              (origin.[index].b + refColor.b * constant),
+                              (origin.[index].r + refColor.r * constant_),
+                              (origin.[index].g + refColor.g * constant_),
+                              (origin.[index].b + refColor.b * constant_),
                               origin.[index].a
                           )
             let kernelLauncher = GPUAccelerator.LoadAutoGroupedStreamKernel<Index1D, ArrayView1D<SKIDColor, Stride1D.Dense>, SKIDColor, ArrayView1D<SKIDColor, Stride1D.Dense>,float32> kernel
@@ -148,6 +132,31 @@ module TextureImageProcessing =
             let resultPixels = GPUResultImage.GetAsArray1D()
             SKIDImage(resultPixels, width, height)
              
+        
+        static member private ProcessImageSelf (image:SKIDImage) (op:SingleImageProcessType) (processOption:ImageProcessInputOption) : SKIDImage =
+            let width = image.width
+            let height = image.height
+            use GPUContext = Context.CreateDefault()
+            use GPUAccelerator = GPUContext.GetPreferredDevice(preferCPU=false).CreateAccelerator(GPUContext)
+            use GPUOriginImage = GPUAccelerator.Allocate1D<SKIDColor>(image.pixels) 
+            use GPUResultImage = GPUAccelerator.Allocate1D<SKIDColor>(image.pixels.Length)
+            let kernel (index: Index1D) 
+                       (origin: ArrayView1D<SKIDColor, Stride1D.Dense>) 
+                       (result: ArrayView1D<SKIDColor, Stride1D.Dense> )
+                       (processOp: int) // Changed to int to avoid unsupported FSharpFunc
+                       (constant: float32) =
+                match processOp with
+                | 0 -> result.[index] <- origin.[index] * constant
+                | 1 -> result.[index] <- origin.[index] / constant
+                | 7 -> 
+                    let color = origin.[index]
+                    result.[index] <- SKIDColor( 1.0f - color.r, 1.0f - color.g, 1.0f - color.b, color.a )
+                | _ -> result.[index] <- origin.[index]
+            let kernelLauncher = GPUAccelerator.LoadAutoGroupedStreamKernel<Index1D, ArrayView1D<SKIDColor, Stride1D.Dense>, ArrayView1D<SKIDColor, Stride1D.Dense>, int, float32> kernel
+            kernelLauncher.Invoke(GPUResultImage.IntExtent, GPUOriginImage.View, GPUResultImage.View, int op, processOption.constant)
+            GPUAccelerator.Synchronize()
+            let resultPixels = GPUResultImage.GetAsArray1D()
+            SKIDImage(resultPixels, width, height)
 
         static member public Process(input: ImageProcessInput<ImageProcessInputOption>) : SKIDImage =
             let processType = input.config.Value.processType
@@ -163,8 +172,6 @@ module TextureImageProcessing =
                         |> Array.Parallel.filter filteringVaildColor
                         |> Array.average
                     Processer.ProcessMainColor(input.image, mainColorOnReference, option.constant)
-
-                    
                 else Processer.ProcessImage(pixels, width, height, processOp, option)
             | SingleImageProcess(processOperation) ->
-                 failwith "The specified single image process operation is not implemented."
+                 Processer.ProcessImageSelf input.image processOperation input.config.Value

@@ -14,6 +14,7 @@ module BoxedZoneEditAdaptor =
         zoneSize: SKIDPixelVector2
         stickingType: StickingType
         center: SKIDPixelVector2
+        rotation: float32
     }
     type ResizedImage = {
         image: SKIDImage
@@ -40,25 +41,21 @@ module BoxedZoneEditAdaptor =
                 raise (ArgumentException("The input image pixels cannot be empty."))
             elif partSetting.zoneSize.x <= 0 || partSetting.zoneSize.y <= 0 then
                 raise (ArgumentException("The input image zone size cannot be less than or equal to zero."))
-            elif  partSetting.zoneSize.x = partSetting.image.width && partSetting.zoneSize.y = partSetting.image.height then
-                // 부착할 이미지의 해상도에 따라 결정한다.
-                // 원본 이미지와 동일한 해상도일 경우, 원본 이미지를 그대로 반환한다.
-                partSetting.image
             else
-                //let width = partSetting.image.width
-                //let height = partSetting.image.height
-                //let zoneSize = partSetting.zoneSize                
-                //// 부착할 이미지의 해상도에 따라 결정한다.
+                let width = partSetting.image.width
+                let height = partSetting.image.height
+                let zoneSize = partSetting.zoneSize                
+                // 부착할 이미지의 해상도에 따라 결정한다.
 
-                //let targetWidth, targetHeight =
-                //    match partSetting.stickingType with
-                //    | StickingType.OriginStickingSize -> width, height
-                //    | StickingType.PreferenceStickingSize -> int zoneSize.x, int zoneSize.y
-                //    | _ -> raise (ArgumentException("Invalid sticking type."))
+                let targetWidth, targetHeight =
+                    match partSetting.stickingType with
+                    | StickingType.OriginStickingSize -> width, height
+                    | StickingType.PreferenceStickingSize -> zoneSize.x, zoneSize.y
+                    | _ -> raise (ArgumentException("Invalid sticking type."))
 
-                //resizeImage partSetting.image targetWidth targetHeight   
-                partSetting.image
-
+                let resizedPixels = resizeImage partSetting.image targetWidth targetHeight
+                rotateImage resizedPixels partSetting.rotation
+        
         static member ExecuteImageAfterPartically (originInput:SKIDImage)(partSetting:MarkingImage)(processer:ICanParticalImageProcesser<'t>)(argu:'t): SKIDImage =
             processer.ProcessingPartically(originInput, argu, BoxingProcesser.generateToBoxedImageStickier partSetting)
             

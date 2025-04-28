@@ -3,9 +3,18 @@ open LuticaSKID.StructTypes
 open LuticaSKID.SKIDToolFunction
 open System.Runtime.InteropServices
 open System.Collections.Generic
+open ILGPU
+open ILGPU.Runtime
+
+type AnalyzeResultTypes =     
+    | ColorGroupingResult of Models.ColorGroupingModel.ColorGroupiongAnlyzeResult
+    | HistogramResult of Models.HistogramProcessor.histogramAnalyzeResult
+
 
 [<ComVisible(true)>]
 type LuticaSKIDAPI () =
+   //member this.ilgpuContext = Context.CreateDefault()
+   //
    member this.Process(cmd: ImageProcessCommand) : SKIDImage =
        match cmd with
        | GenerateNormalMap(input) -> NormalModule.generateNormalMap input
@@ -22,3 +31,17 @@ type LuticaSKIDAPI () =
                partialImage 
                processor
                config
+       | ProcessHistogramEqualize(input) -> 
+              let histogram = Models.HistogramProcessor.Process.makeHistogram input.image input.config.Value
+              Models.HistogramProcessor.Process.imageHistogramEqualize input.image histogram.result
+       | ProcessToHeightMap(input) -> 
+              Models.HeightMapModel.generateHeightMap input
+
+    member this.AnalyzingColorImage(cmd:ImageAnalyzeCommand) : AnalyzeResultTypes =
+        match cmd with
+            | AnalyzeColorGroup(input) -> 
+                Models.ColorGroupingModel.Process.ExecuteKmeans input.image input.config.Value.maxK input.config.Value.maxIter 
+                    |> AnalyzeResultTypes.ColorGroupingResult 
+            | AnalyzeHistogram(input) -> 
+                Models.HistogramProcessor.Process.makeHistogram input.image input.config.Value 
+                    |> AnalyzeResultTypes.HistogramResult

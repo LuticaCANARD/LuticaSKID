@@ -126,6 +126,58 @@ module public StructTypes =
             let a = this.MaxColor.a + this.MinColor.a / 2.0f
             SKIDColor(r, g, b, a)
 
+    [<StructLayout(LayoutKind.Sequential)>]
+    [<Struct>]
+    type SKIDHSVColor =
+        val h: float32
+        val s: float32
+        val v: float32
+        val a: float32
+        new (_h, _s, _v, _a) = { h = _h; s = _s; v = _v; a = _a }
+        new (rgbac:SKIDColor) = 
+            // RGB to HSV conversion
+            let r = rgbac.r
+            let g = rgbac.g
+            let b = rgbac.b
+            let maxc = max (max r g) b
+            let minc = min (min r g) b
+            let delta = maxc - minc
+            let h =
+                if delta = 0.0f then 0.0f
+                elif maxc = r then (60.0f * ((g - b) / delta) + 360.0f) % 360.0f
+                elif maxc = g then (60.0f * ((b - r) / delta) + 120.0f) % 360.0f
+                else (60.0f * ((r - g) / delta) + 240.0f) % 360.0f
+            let s =
+                if maxc = 0.0f then 0.0f
+                else delta / maxc
+            let v = maxc
+            let a = rgbac.a
+            SKIDHSVColor(h, s, v, a)
+            
+        static member (+) (a: SKIDHSVColor, b: SKIDHSVColor) =
+            SKIDHSVColor(a.h + b.h, a.s + b.s, a.v + b.v, a.a + b.a)
+        static member (-) (a: SKIDHSVColor, b: SKIDHSVColor) =
+            SKIDHSVColor(a.h - b.h, a.s - b.s, a.v - b.v, a.a - b.a)
+        static member (*) (a: SKIDHSVColor, b: float32) =
+            SKIDHSVColor(a.h * b, a.s * b, a.v * b, a.a * b)
+        static member (*) (a: SKIDHSVColor, b: SKIDHSVColor) =
+            SKIDHSVColor(a.h * b.h, a.s * b.s, a.v * b.v, a.a * b.a)
+        static member (/) (a: SKIDHSVColor, b: float32): SKIDHSVColor =
+            SKIDHSVColor(a.h / b, a.s / b, a.v / b, a.a / b)
+        static member DivideByInt(a: SKIDHSVColor, b: int): SKIDHSVColor =
+            SKIDHSVColor(a.h / float32 b, a.s / float32 b, a.v / float32 b, a.a / float32 b)
+        static member ChangeToRGB(a: SKIDHSVColor): SKIDColor =
+            let c = a.v * a.s
+            let x = c * (1.0f - abs ((a.h / 60.0f) % 2.0f - 1.0f))
+            let m = a.v - c
+            let (r, g, b) =
+                if a.h < 60.0f then (c, x, 0.0f)
+                elif a.h < 120.0f then (x, c, 0.0f)
+                elif a.h < 180.0f then (0.0f, c, x)
+                elif a.h < 240.0f then (0.0f, x, c)
+                elif a.h < 300.0f then (x, 0.0f, c)
+                else (c, 0.0f, x)
+            SKIDColor(r + m, g + m, b + m, a.a)
 
     [<StructLayout(LayoutKind.Sequential)>]
     [<Struct>]
@@ -168,6 +220,14 @@ module public StructTypes =
         val height: int
         new(pixels: SKIDColor[], width: int, height: int) =
             { pixels = pixels; width = width; height = height }
+        member inline public this.GetPixelIndex(x: int, y: int) =
+            if x < 0 || y < 0 || x >= this.width || y >= this.height then
+                raise (ArgumentOutOfRangeException("Index out of bounds"))
+            y * this.width + x
+        member public this.GetPixel(x: int, y: int) =
+            if x < 0 || y < 0 || x >= this.width || y >= this.height then
+                raise (ArgumentOutOfRangeException("Index out of bounds"))
+            this.pixels.[y * this.width + x]
 
 
     [<Class>]
@@ -176,7 +236,10 @@ module public StructTypes =
         val config: 'TSetting option
         new (image:SKIDImage, config: 'TSetting option) = { image = image; config = config }
         new (image:SKIDImage) = { image = image; config = None}
-    
+    [<Class>]
+    type ImageProcessInput = 
+        val image: SKIDImage
+        new (image:SKIDImage) = { image = image }
     type ImageProcessingOrder = 
     | NormalMap = 0
     | MatcapMap = 1
@@ -196,5 +259,12 @@ module public StructTypes =
     | TextureReplace = 7 // 텍스쳐 자체를 완벽하게 교체한다.
 
 
+    type ImageScaleOption = 
+    | OriginalSize = 0 // 붙힐 때 원본 이미지의 크기로 붙힘.
+    | PrefTargetImageSize = 1 // 붗힐 때 타겟 이미지의 크기로 붙힘.
+    | PrefManualSize = 2 // 붙힐 때 수동으로 크기를 지정함.
+    
 
-   
+    type AnalyzeResult<'T>={
+        result: 'T
+    }   
