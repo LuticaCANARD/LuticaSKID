@@ -153,7 +153,7 @@ module ColorGroupingModel =
             | ex ->
                 printfn "ILGPU Exception: %s" ex.Message
                 accelerator.Dispose()
-                Unchecked.defaultof<_>
+                {result = {colorResult = []; colorCount = 0};}
 
 
 

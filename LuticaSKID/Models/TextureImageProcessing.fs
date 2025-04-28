@@ -118,11 +118,11 @@ module TextureImageProcessing =
                        (origin: ArrayView1D<SKIDColor, Stride1D.Dense>) 
                        (refColor:SKIDColor) 
                        (result: ArrayView1D<SKIDColor, Stride1D.Dense> )
-                       (constant: float32) =
+                       (constant_: float32) =
                        result[index] <- SKIDColor(
-                              (origin.[index].r + refColor.r * constant),
-                              (origin.[index].g + refColor.g * constant),
-                              (origin.[index].b + refColor.b * constant),
+                              (origin.[index].r + refColor.r * constant_),
+                              (origin.[index].g + refColor.g * constant_),
+                              (origin.[index].b + refColor.b * constant_),
                               origin.[index].a
                           )
             let kernelLauncher = GPUAccelerator.LoadAutoGroupedStreamKernel<Index1D, ArrayView1D<SKIDColor, Stride1D.Dense>, SKIDColor, ArrayView1D<SKIDColor, Stride1D.Dense>,float32> kernel
