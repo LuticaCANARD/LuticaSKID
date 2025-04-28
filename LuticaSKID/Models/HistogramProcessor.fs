@@ -60,10 +60,6 @@ module HistogramProcessor =
                 let ib = (int (b * float32 hlevel))
                 let index = ir * hlevel * hlevel + ig * hlevel + ib
                 Atomic.Add(&histogram.[index], 1) |> ignore
-                        
-                           
-                
-                   
 
 
         static member imageHistogramEqualize(origin:SKIDImage)(histogram:HistogramResult):SKIDImage = 
