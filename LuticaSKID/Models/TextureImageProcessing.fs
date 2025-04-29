@@ -48,7 +48,7 @@ module TextureImageProcessing =
         interface ICanParticalImageProcesser<SimpleImageSynArgu> with
             override this.ProcessingPartically
                 with get (): MarkedImageProcess<SimpleImageSynArgu> = 
-                    fun (image, option,refImage) -> 
+                    fun (acc,image, option,refImage) -> 
                         let pixels = image.pixels
                         let width = image.width
                         let height = image.height
@@ -58,7 +58,7 @@ module TextureImageProcessing =
                                 refImage.image.pixels
                                 |> Array.Parallel.filter filteringVaildColor
                                 |> Array.average
-                            Processer.ProcessMainColor(image, mainColorOnReference, option.constant)
+                            Processer.ProcessMainColor(acc,image, mainColorOnReference, option.constant)
                         else 
                         
                             let cuttedImage:SKIDImage = 
@@ -107,13 +107,11 @@ module TextureImageProcessing =
             let resultPixels = GPUResultImage.GetAsArray1D()
             SKIDImage(resultPixels, width, height)
         
-        static member private ProcessMainColor(image:SKIDImage,refColor:SKIDColor,constant:float32): SKIDImage =
+        static member private ProcessMainColor(gpuAccelerator:Accelerator,image:SKIDImage,refColor:SKIDColor,constant:float32): SKIDImage =
             let width = image.width
             let height = image.height
-            use GPUContext = Context.CreateDefault()
-            use GPUAccelerator = GPUContext.GetPreferredDevice(preferCPU=false).CreateAccelerator(GPUContext)
-            use GPUOriginImage = GPUAccelerator.Allocate1D<SKIDColor>(image.pixels) 
-            use GPUResultImage = GPUAccelerator.Allocate1D<SKIDColor>(image.pixels.Length)
+            use GPUOriginImage = gpuAccelerator.Allocate1D<SKIDColor>(image.pixels) 
+            use GPUResultImage = gpuAccelerator.Allocate1D<SKIDColor>(image.pixels.Length)
             let kernel (index: Index1D) 
                        (origin: ArrayView1D<SKIDColor, Stride1D.Dense>) 
                        (refColor:SKIDColor) 
@@ -125,10 +123,10 @@ module TextureImageProcessing =
                               (origin.[index].b + refColor.b * constant_),
                               origin.[index].a
                           )
-            let kernelLauncher = GPUAccelerator.LoadAutoGroupedStreamKernel<Index1D, ArrayView1D<SKIDColor, Stride1D.Dense>, SKIDColor, ArrayView1D<SKIDColor, Stride1D.Dense>,float32> kernel
+            let kernelLauncher = gpuAccelerator.LoadAutoGroupedStreamKernel<Index1D, ArrayView1D<SKIDColor, Stride1D.Dense>, SKIDColor, ArrayView1D<SKIDColor, Stride1D.Dense>,float32> kernel
 
             kernelLauncher.Invoke(GPUResultImage.IntExtent, GPUOriginImage.View, refColor, GPUResultImage.View, constant)
-            GPUAccelerator.Synchronize()
+            gpuAccelerator.Synchronize()
             let resultPixels = GPUResultImage.GetAsArray1D()
             SKIDImage(resultPixels, width, height)
              
@@ -158,20 +156,25 @@ module TextureImageProcessing =
             let resultPixels = GPUResultImage.GetAsArray1D()
             SKIDImage(resultPixels, width, height)
 
-        static member public Process(input: ImageProcessInput<ImageProcessInputOption>) : SKIDImage =
+        static member public Process(accelerator:Accelerator)(input: ImageProcessInput<ImageProcessInputOption>) : SKIDImage =
             let processType = input.config.Value.processType
-            match processType with
-            | TwoImageProcess (processOp, option) ->
-                let pixels = input.image.pixels
-                let width = input.image.width
-                let height = input.image.height
+            try 
+                match processType with
+                | TwoImageProcess (processOp, option) ->
+                    let pixels = input.image.pixels
+                    let width = input.image.width
+                    let height = input.image.height
 
-                if processOp = ImageProcessTwoImage.ColorDifference then
-                    let mainColorOnReference = 
-                        option.refrenceImage.pixels
-                        |> Array.Parallel.filter filteringVaildColor
-                        |> Array.average
-                    Processer.ProcessMainColor(input.image, mainColorOnReference, option.constant)
-                else Processer.ProcessImage(pixels, width, height, processOp, option)
-            | SingleImageProcess(processOperation) ->
-                 Processer.ProcessImageSelf input.image processOperation input.config.Value
+                    if processOp = ImageProcessTwoImage.ColorDifference then
+                        let mainColorOnReference = 
+                            option.refrenceImage.pixels
+                            |> Array.Parallel.filter filteringVaildColor
+                            |> Array.average
+                        Processer.ProcessMainColor(accelerator,input.image, mainColorOnReference, option.constant)
+                    else Processer.ProcessImage(pixels, width, height, processOp, option)
+                | SingleImageProcess(processOperation) ->
+                     Processer.ProcessImageSelf input.image processOperation input.config.Value
+            with
+            | e ->
+                accelerator.Dispose() 
+                failwith ("error on process "+ e.Message)

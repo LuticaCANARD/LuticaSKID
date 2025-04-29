@@ -3,6 +3,7 @@
 open LuticaSKID.StructTypes
 open LuticaSKID.SKIDToolFunction
 open System
+open ILGPU.Runtime
 module BoxedZoneEditAdaptor =
 
     // 추가이미지와 원본이미지의 사이즈 구분
@@ -21,7 +22,7 @@ module BoxedZoneEditAdaptor =
         zoneSize: SKIDPixelVector2
         center: SKIDPixelVector2
     }
-    type MarkedImageProcess<'t> = SKIDImage * 't * ResizedImage  -> SKIDImage
+    type MarkedImageProcess<'t> = Accelerator * SKIDImage * 't * ResizedImage  -> SKIDImage
 
     [<Interface>]
     type ICanParticalImageProcesser<'t> = interface
@@ -56,8 +57,8 @@ module BoxedZoneEditAdaptor =
                 let resizedPixels = resizeImage partSetting.image targetWidth targetHeight
                 rotateImage resizedPixels partSetting.rotation
         
-        static member ExecuteImageAfterPartically (originInput:SKIDImage)(partSetting:MarkingImage)(processer:ICanParticalImageProcesser<'t>)(argu:'t): SKIDImage =
-            processer.ProcessingPartically(originInput, argu, BoxingProcesser.generateToBoxedImageStickier partSetting)
+        static member ExecuteImageAfterPartically (acc:Accelerator)(originInput:SKIDImage)(partSetting:MarkingImage)(processer:ICanParticalImageProcesser<'t>)(argu:'t): SKIDImage =
+            processer.ProcessingPartically(acc,originInput, argu, BoxingProcesser.generateToBoxedImageStickier partSetting)
             
 
 

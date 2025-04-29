@@ -38,7 +38,7 @@ module MatcapModule =
 
                 result.[x, y] <- SKIDColor(u, v, z, pixels2D.[x, y].a)
 
-        let flat = Array.init (width * height) (fun i -> 
+        let flat = Array.Parallel.init (width * height) (fun i -> 
             let x = i % width
             let y = i / width
             result.[x, y]
