@@ -78,9 +78,7 @@ module ColorGroupingModel =
 
                     assignments.[tid] <- best
             
-        static member ExecuteKmeans (image:SKIDImage)(maxK:int)(maxTry:int) : ColorGroupiongAnlyzeResult =
-            use context = Context.CreateDefault()
-            use accelerator = context.GetPreferredDevice(preferCPU=false).CreateAccelerator(context)
+        static member ExecuteKmeans (accelerator:Accelerator)(image:SKIDImage)(maxK:int)(maxTry:int) : ColorGroupiongAnlyzeResult =
             try 
                 let kernel = accelerator.LoadAutoGroupedStreamKernel<Index1D,ArrayView<SKIDColor>,ArrayView<SKIDColor>,ArrayView<int>,int,int> Process.kmeansKernel
                 let pixelLength = image.pixels.Length

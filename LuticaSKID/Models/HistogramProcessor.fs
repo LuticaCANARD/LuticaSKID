@@ -18,28 +18,21 @@ module HistogramProcessor =
     }
     /// <summary>
     type Process()=
-        static member makeHistogram (image:SKIDImage) (options:histogramAnalyzeOption):histogramAnalyzeResult = 
-            use context = Context.CreateDefault()
-            use accelerator = context.GetPreferredDevice(preferCPU=false).CreateAccelerator(context)
+        static member makeHistogram (accelerator:Accelerator)(image:SKIDImage) (options:histogramAnalyzeOption):histogramAnalyzeResult = 
             let histogramSize = options.histogramSize
             let doNotCountWhitePixel = options.doNotCountWhitePixel
             let pixelCount = image.pixels.Length
             let histogram = Array.create (histogramSize*histogramSize*histogramSize) 0
             let originLevel = options.originLevel
             let targetImg = if options.mask.IsNone then image else maskingImage image options.mask.Value
-            try
-                let memory = accelerator.Allocate1D<SKIDColor>(targetImg.pixels)
-                let histogramBuffer = accelerator.Allocate1D<int>(histogram)
-                let kernel = accelerator.LoadAutoGroupedStreamKernel<Index1D,ArrayView<SKIDColor>,ArrayView<int>,int,int,int,int>(Process.histogramKernel)
-                let whiteInt = if doNotCountWhitePixel then 1 else 0
-                kernel.Invoke(memory.IntExtent, memory.View, histogramBuffer.View, pixelCount,whiteInt,histogramSize-1,originLevel)
-                accelerator.Synchronize()
-                {result={histogram=histogramBuffer.GetAsArray1D();pixelCount=pixelCount;};}
-            with
-            | ex ->
-                // Log or handle the exception as needed
-                printfn "Exception occurred: %s" ex.Message
-                raise ex
+            let memory = accelerator.Allocate1D<SKIDColor>(targetImg.pixels)
+            let histogramBuffer = accelerator.Allocate1D<int>(histogram)
+            let kernel = accelerator.LoadAutoGroupedStreamKernel<Index1D,ArrayView<SKIDColor>,ArrayView<int>,int,int,int,int>(Process.histogramKernel)
+            let whiteInt = if doNotCountWhitePixel then 1 else 0
+            kernel.Invoke(memory.IntExtent, memory.View, histogramBuffer.View, pixelCount,whiteInt,histogramSize-1,originLevel)
+            accelerator.Synchronize()
+            {result={histogram=histogramBuffer.GetAsArray1D();pixelCount=pixelCount;};}
+           
            
             
             
