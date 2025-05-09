@@ -15,9 +15,7 @@ type AnalyzeResultTypes =
 type LuticaSKIDAPI () =
    //member this.ilgpuContext = Context.CreateDefault()
    //
-   member this.Process(cmd: ImageProcessCommand) : SKIDImage =
-       use context = Context.CreateDefault()
-       use accelerator = context.GetPreferredDevice(preferCPU=false).CreateAccelerator(context)
+   member this.Process(cmd: ImageProcessCommand,accelerator:Accelerator) : SKIDImage =
        try
            match cmd with
            | GenerateNormalMap(input) -> NormalModule.generateNormalMap input
@@ -45,9 +43,7 @@ type LuticaSKIDAPI () =
                 accelerator.Dispose() 
                 failwith ("error on process "+ e.Message)
 
-    member this.AnalyzingColorImage(cmd:ImageAnalyzeCommand) : AnalyzeResultTypes =
-        use context = Context.CreateDefault()
-        use accelerator = context.GetPreferredDevice(preferCPU=false).CreateAccelerator(context)
+    member this.AnalyzingColorImage(cmd:ImageAnalyzeCommand,accelerator:Accelerator) : AnalyzeResultTypes =
         try 
             match cmd with
                 | AnalyzeColorGroup(input) -> 
